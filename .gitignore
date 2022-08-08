@@ -1,0 +1,7 @@
+config.py
+finance.db
+google_token.json
+
+__pycache__/
+.idea/
+env/

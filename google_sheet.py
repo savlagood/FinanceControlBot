@@ -22,6 +22,99 @@ def get_categories(sheet: gspread.spreadsheet.Spreadsheet) -> dict:
     return categories
 
 
+def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksheet):
+    """
+    Resizes categories shape in Google sheet.
+
+    :param last_row: Index of the last row into categories table (rows starts woth 1).
+    :param direct: Direction of resizing. Must be increase or decrease.
+    :param worksheet: Worksheet in Google sheets.
+
+    :raise ValueError: If direct not increase/decrease.
+    :raise AssertionError: If last_row less than 1.
+    """
+    assert last_row >= 1
+
+    def set_bottom(row_index: int):
+        """
+        Sets the bottom of the shape. |__|__|.
+
+        :param row_index: Index of the row in Google sheet (starts with 1).
+
+        :raise AssertionError: If row_index less than 1.
+        """
+        assert row_index >= 1
+
+        worksheet.format(
+            f"B{row_index}",
+            {
+                "borders": {
+                    "left": {
+                        "style": "SOLID_MEDIUM",
+                    },
+                    "right": {
+                        "style": "DASHED",
+                    },
+                    "bottom": {
+                        "style": "SOLID_MEDIUM",
+                    }
+                }
+            }
+        )
+        worksheet.format(
+            f"C{row_index}",
+            {
+                "borders": {
+                    "left": {
+                        "style": "DASHED",
+                    },
+                    "right": {
+                        "style": "SOLID_MEDIUM",
+                    },
+                    "bottom": {
+                        "style": "SOLID_MEDIUM",
+                    }
+                }
+            }
+        )
+
+    if direct == "increase":
+        worksheet.format(
+            f"B{last_row}",
+            {
+                "borders": {
+                    "left": {
+                        "style": "SOLID_MEDIUM",
+                    },
+                    "right": {
+                        "style": "DASHED",
+                    }
+                }
+            }
+        )
+        worksheet.format(
+            f"C{last_row}",
+            {
+                "borders": {
+                    "right": {
+                        "style": "SOLID_MEDIUM",
+                    },
+                    "left": {
+                        "style": "DASHED",
+                    }
+                }
+            }
+        )
+        set_bottom(last_row + 1)
+
+    elif direct == "decrease":
+        worksheet.format(f"B{last_row}:C{last_row}", {"borders": {}})
+        set_bottom(last_row - 1)
+
+    else:
+        raise ValueError(f"direct param must be increase or decrease but not {direct}!")
+
+
 def add_category(cat_name: str, cat_type: str, gsheet_id: str):
     """
     Adds category to list.
@@ -63,64 +156,7 @@ def add_category(cat_name: str, cat_type: str, gsheet_id: str):
     if (num_expense_cats == num_income_cats or
             num_expense_cats > num_income_cats and cat_type == "expense" or
             num_expense_cats < num_income_cats and cat_type == "income"):
-        worksheet.format(
-            f"B{last_row}",
-            {
-                "borders": {
-                    "left": {
-                        "style": "SOLID_MEDIUM",
-                    },
-                    "right": {
-                        "style": "DASHED",
-                    }
-                }
-            }
-        )
-        worksheet.format(
-            f"C{last_row}",
-            {
-                "borders": {
-                    "right": {
-                        "style": "SOLID_MEDIUM",
-                    },
-                    "left": {
-                        "style": "DASHED",
-                    }
-                }
-            }
-        )
-        worksheet.format(
-            f"B{last_row + 1}",
-            {
-                "borders": {
-                    "left": {
-                        "style": "SOLID_MEDIUM",
-                    },
-                    "right": {
-                        "style": "DASHED",
-                    },
-                    "bottom": {
-                        "style": "SOLID_MEDIUM",
-                    }
-                }
-            }
-        )
-        worksheet.format(
-            f"C{last_row + 1}",
-            {
-                "borders": {
-                    "left": {
-                        "style": "DASHED",
-                    },
-                    "right": {
-                        "style": "SOLID_MEDIUM",
-                    },
-                    "bottom": {
-                        "style": "SOLID_MEDIUM",
-                    }
-                }
-            }
-        )
+        resize_shape(last_row, "increase", worksheet)
 
 
 def rename_category(cat_name: str, new_cat_name: str, cat_type: str, gsheet_id: str):

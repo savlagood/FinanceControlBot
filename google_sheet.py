@@ -172,20 +172,34 @@ def delete_category(cat_name: str, cat_type: str, gsheet_id: str):
     :param cat_type: Type of catrgory (expense/income).
     :param gsheet_id: ID of Google sheet.
 
-    :raise ValueError: If category with cat_name already exist.
+    :raise ValueError: If category with cat_name does not exist.
     If cat_type not income/expense.
     """
-    cat_name = cat_name.lower()
+    cat_name = cat_name.title()
     cat_type = cat_type.lower()
 
     sheet = service_account.open_by_key(gsheet_id)
     worksheet = sheet.get_worksheet(1)
 
-    categories = get_categories()
-
     if cat_type == "expense":
-        pass
+        col_index = "B"
     elif cat_type == "income":
-        pass
+        col_index = "C"
     else:
         raise ValueError(f"cat_type must be income or expense but not {cat_type}!")
+
+    categories = get_categories(sheet)
+    if cat_name not in categories[cat_type]:
+        raise ValueError(f"{cat_type.title()} category with name {cat_name} "
+                         "does not exist!")
+
+    row_index = categories[cat_type].index(cat_name) + 4
+
+    worksheet.update(
+        f"{col_index}{row_index}:{col_index}{len(categories[cat_type]) + 3}",
+        worksheet.get(
+            f"{col_index}{row_index + 1}:{col_index}{len(categories[cat_type]) + 3}"
+        )
+    )
+    worksheet.update(f"{col_index}{len(categories[cat_type]) + 3}", "")
+

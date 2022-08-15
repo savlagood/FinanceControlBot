@@ -67,12 +67,5 @@ def add_expens(amount: float, category: str, account: str, gsheet_id: str, comme
         f"A4:E{total_expenses + 3}",
         worksheet.get(f"A3:E{total_expenses + 2}")
     )
-    # worksheet.update(
-    #     f"A{row_index}:E{row_index}",
-    #     [[
-    #      f"=date({current_time.year}, {current_time.month}, {current_time.day})",
-    #      category, amount, account, comment
-    #      ]],
-    # )
     worksheet.update("B3:E3", [[category, amount, account, comment]])
     worksheet.update_acell("A3", f"=date({current_time.year}, {current_time.month}, {current_time.day})")

@@ -42,10 +42,10 @@ def add_income(amount: float, category: str, account: str, gsheet_id: str, comme
     Adds income to Google sheet.
 
     :param amount: Money amount at account.
-    :param category: Category of expense.
+    :param category: Category of income.
     :param account: Name of account.
     :param gsheet_id: ID of Google sheet.
-    :param comment: Description to expens.
+    :param comment: Description to income.
 
     :raise AssertionError: If category does not exist or account does not exist or
     amount less than 0.

@@ -1,10 +1,10 @@
 """
-Functions for working with Google sheet.
+Functions for working with categories (add, rename, delete).
 """
 import gspread
 
 
-service_account = gspread.service_account("google_token.json")
+service_account = gspread.service_account("../google_token.json")
 
 
 def get_categories(sheet: gspread.spreadsheet.Spreadsheet) -> dict:
@@ -196,7 +196,7 @@ def rename_category(cat_name: str, new_cat_name: str, cat_type: str, gsheet_id: 
                          f"to {new_cat_name} because category with "
                          f"{new_cat_name} already exist!")
 
-    cell_index += str(categories[cat_type].index(cat_name) + 4)
+    cell_index += str(categories[cat_type].index(cat_name) + 1 + 3)
     worksheet.update(cell_index, new_cat_name)
 
 

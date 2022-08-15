@@ -93,7 +93,7 @@ async def google_drive_sign_in_callback(call_query: types.CallbackQuery):
 
     await bot.send_animation(
         call_query.from_user.id,
-        InputFile("media/gandalf.gif"),
+        InputFile("../media/gandalf.gif"),
         caption="*ШАГ 2*\n\n"
                 "Отлично!\nТеперь перейди по [уже другой ссылке]("
                 "https://docs.google.com/spreadsheets/d/1L87QNYDyr7b1wUH_W_6v6lPopJafV6bsnenZmRH2cnQ/edit?usp=sharing"
@@ -116,7 +116,7 @@ async def share_google_sheet_to_bot_callback(call_query: types.CallbackQuery):
 
     await bot.send_animation(
         call_query.from_user.id,
-        InputFile("media/harry.gif"),
+        InputFile("../media/harry.gif"),
         caption="*ШАГ 3*\n\n"
                 "Супер!\nТеперь нажми в правом верхнем углу на кнопку "
                 "*\"Настройки доступа\"* и в поле ввода вставь мой email адрес: "
@@ -139,7 +139,7 @@ async def get_user_google_sheet_id_callback(call_query: types.CallbackQuery):
 
     await bot.send_animation(
         call_query.from_user.id,
-        InputFile("media/biden.gif"),
+        InputFile("../media/biden.gif"),
         caption="*ШАГ 4*\n\n"
                 "Ок!\nТеперь в *Настройках доступа* нажми *Копировать ссылку*, "
                 "она сохранится в буфер обмена.\n"

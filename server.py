@@ -34,7 +34,7 @@ async def start_cmd(message: types.Message):
 
 
 if __name__ == '__main__':
-    from registration import register_registration_handlers
+    from handlers.registration import register_registration_handlers
     # from expence import register_expence_handlers
 
     register_registration_handlers(dp)

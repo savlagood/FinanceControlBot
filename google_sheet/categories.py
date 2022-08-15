@@ -4,7 +4,7 @@ Functions for working with categories (add, rename, delete).
 import gspread
 
 
-service_account = gspread.service_account("../google_token.json")
+service_account = gspread.service_account("google_token.json")
 
 
 def get_categories(sheet: gspread.spreadsheet.Spreadsheet) -> dict:

@@ -229,8 +229,9 @@ def delete_category(cat_name: str, cat_type: str, gsheet_id: str):
         raise ValueError(f"{cat_type.title()} category with name {cat_name} "
                          "does not exist!")
 
-    row_index = categories[cat_type].index(cat_name) + 4
+    row_index = categories[cat_type].index(cat_name) + 1 + 3
 
+    # Moving categories up.
     worksheet.update(
         f"{col_index}{row_index}:{col_index}{len(categories[cat_type]) + 3}",
         worksheet.get(
@@ -239,3 +240,7 @@ def delete_category(cat_name: str, cat_type: str, gsheet_id: str):
     )
     worksheet.update(f"{col_index}{len(categories[cat_type]) + 3}", "")
 
+    if (len(categories["expense"]) == len(categories["income"]) or
+            len(categories["expense"]) > len(categories["income"]) and cat_type == "expense" or
+            len(categories["income"]) > len(categories["expense"]) and cat_type == "income"):
+        resize_shape(len(categories[cat_type]) + 4, "decrease", worksheet)

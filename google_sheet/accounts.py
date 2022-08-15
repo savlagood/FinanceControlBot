@@ -53,7 +53,7 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
                         "style": "SOLID_MEDIUM",
                     },
                     "right": {
-                        "style": "DASHED",
+                        "style": "DOTTED",
                     },
                     "bottom": {
                         "style": "SOLID_MEDIUM",
@@ -66,10 +66,10 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
             {
                 "borders": {
                     "left": {
-                        "style": "DASHED",
+                        "style": "DOTTED",
                     },
                     "right": {
-                        "style": "DASHED",
+                        "style": "DOTTED",
                     },
                     "bottom": {
                         "style": "SOLID_MEDIUM",
@@ -82,7 +82,7 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
             {
                 "borders": {
                     "left": {
-                        "style": "DASHED",
+                        "style": "DOTTED",
                     },
                     "right": {
                         "style": "SOLID_MEDIUM",
@@ -103,7 +103,7 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
                         "style": "SOLID_MEDIUM",
                     },
                     "right": {
-                        "style": "DASHED",
+                        "style": "DOTTED",
                     }
                 }
             }
@@ -113,10 +113,10 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
             {
                 "borders": {
                     "left": {
-                        "style": "DAHSED",
+                        "style": "DOTTED",
                     },
                     "right": {
-                        "style": "DAHSED",
+                        "style": "DOTTED",
                     }
                 }
             }
@@ -129,7 +129,7 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
                         "style": "SOLID_MEDIUM",
                     },
                     "left": {
-                        "style": "DASHED",
+                        "style": "DOTTED",
                     }
                 }
             }
@@ -144,7 +144,7 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
         raise ValueError(f"direct param must be increase or decrease but not {direct}!")
 
 
-def add_category(acc_name: str, acc_amount: int, is_acc_savings: bool, gsheet_id: str):
+def add_account(acc_name: str, acc_amount: float, is_acc_savings: bool, gsheet_id: str):
     """
     Adds account to list.
 
@@ -173,7 +173,7 @@ def add_category(acc_name: str, acc_amount: int, is_acc_savings: bool, gsheet_id
     resize_shape(last_row, "increase", worksheet)
 
 
-def rename_category(acc_name: str, new_acc_name: str, gsheet_id: str):
+def rename_account(acc_name: str, new_acc_name: str, gsheet_id: str):
     """
     Renames account with acc_name to new_acc_name.
 
@@ -202,14 +202,46 @@ def rename_category(acc_name: str, new_acc_name: str, gsheet_id: str):
     worksheet.update(f"E{accounts.index(acc_name) + 1 + 3}", new_acc_name)
 
 
-def change_balance():
-    """Changes acc_name account's balance."""
-    pass
+def change_balance(acc_name: str, new_balance: float, gsheet_id: str):
+    """
+    Changes account's balance.
+
+    :param acc_name: Account name.
+    :param new_balance: New amount on account.
+    :param gsheet_id: ID of Google sheet.
+
+    :raise AssertionError: If account with acc_name does not exist.
+    """
+    sheet = service_account.open_by_key(gsheet_id)
+    worksheet = sheet.get_worksheet(1)
+
+    acc_name = acc_name.title()
+    accounts = get_account_names(sheet)
+
+    assert acc_name in accounts
+
+    worksheet.update(f"F{accounts.index(acc_name) + 1 + 3}", new_balance)
 
 
-def change_type():
-    """Changes acc_name account's type."""
-    pass
+def change_type(acc_name: str, is_acc_saving: bool, gsheet_id: str):
+    """
+    Changes account's type.
+
+    :param acc_name: Account name.
+    :param is_acc_saving: Type of account (savings or not).
+    :param gsheet_id: ID of Google sheet.
+
+    :raise AssertionError: If account with acc_name does not exist.
+    """
+    sheet = service_account.open_by_key(gsheet_id)
+    worksheet = sheet.get_worksheet(1)
+
+    acc_name = acc_name.title()
+    accounts = get_account_names(sheet)
+
+    assert acc_name in accounts
+
+    worksheet.update(f"G{accounts.index(acc_name) + 1 + 3}", is_acc_saving)
 
 
 def delete_account(acc_name: str, gsheet_id: str):
@@ -239,7 +271,7 @@ def delete_account(acc_name: str, gsheet_id: str):
             f"E{row_index + 1}:G{len(accounts) + 3}"
         )
     )
-    worksheet.update(f"E{len(accounts) + 3}:G{len(accounts) + 3}", "")
+    worksheet.update(f"E{len(accounts) + 3}:G{len(accounts) + 3}", [["", "", ""]])
 
     # Changing shape format.
     resize_shape(len(accounts) + 4, "decrease", worksheet)

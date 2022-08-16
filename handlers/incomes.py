@@ -1,5 +1,5 @@
 """
-File with expence control handlers.
+File with income control handlers.
 """
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
@@ -11,37 +11,37 @@ from keyboards import list_items_keyboard, main_keyboard
 
 from google_sheet.categories import get_categories, service_account
 from google_sheet.accounts import get_account_names
-from google_sheet.expenses import add_expens
+from google_sheet.incomes import add_income
 
 
-class AddsExpense(StatesGroup):
+class AddsIncome(StatesGroup):
     category = State()
     amount = State()
     account = State()
     comment = State()
 
 
-async def add_expence_handler(message: types.Message, state: FSMContext):
-    """Adds expence to user's Google sheet."""
+async def add_income_handler(message: types.Message, state: FSMContext):
+    """Adds income to user's Google sheet."""
     gsheet_id = get_gsheet_id(message.from_user.id)
     sheet = service_account.open_by_key(gsheet_id)
 
-    categories = get_categories(sheet)["expense"]
+    categories = get_categories(sheet)["income"]
     categories.sort()
 
     if len(categories) == 0:
         await message.answer(
-            "Похоже, что ты еще не добавил ни одной категории расходов.\n"
-            "Чтобы ее добавить, введи команду /add_expense_categoryсчета"
+            "Похоже, что ты еще не добавил ни одной категории доходов.\n"
+            "Чтобы ее добавить, введи команду /add_income_category"
         )
 
     else:
         await message.answer(
-            "Теперь выбери категорию расходов из списка под твоей клавиатурой.\n\n"
-            "Чтобы прервать добавление расходов напиши `отмена`",
+            "Теперь выбери категорию дохода из списка под твоей клавиатурой.\n\n"
+            "Чтобы прервать добавление доходов напиши `отмена`",
             reply_markup=list_items_keyboard(categories),
         )
-        await AddsExpense.category.set()
+        await AddsIncome.category.set()
 
         async with state.proxy() as data:
             data["categories"] = categories
@@ -65,8 +65,8 @@ async def get_category_handler(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data["category"] = category
 
-        await message.answer("Теперь введи сумму, которую ты потратил.")
-        await AddsExpense.amount.set()
+        await message.answer("Теперь введи сумму, которую ты получил.")
+        await AddsIncome.amount.set()
 
 
 async def get_amount_handler(message: types.Message, state: FSMContext):
@@ -89,9 +89,9 @@ async def get_amount_handler(message: types.Message, state: FSMContext):
             )
 
         else:
-            await AddsExpense.account.set()
+            await AddsIncome.account.set()
             await message.answer(
-                "Выбери из списка под клавиатурой счет, с которого была совершена покупка.",
+                "Выбери из списка под клавиатурой счет, на который пришли деньги.",
                 reply_markup=list_items_keyboard(accounts),
             )
 
@@ -113,13 +113,13 @@ async def get_account_handler(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data["account"] = account
 
-        await AddsExpense.comment.set()
+        await AddsIncome.comment.set()
 
         markup = InlineKeyboardMarkup()
-        markup.row(InlineKeyboardButton("Пропустить", callback_data="finish_expense"))
+        markup.row(InlineKeyboardButton("Пропустить", callback_data="finish_income"))
 
         await message.answer(
-            "Ок! Также ты можешь добавить описание к своей покупке."
+            "Ок! Также ты можешь добавить описание к твоему доходу."
             "Для этого напиши его в поле ввода и отправь его мне. Если ты "
             "не хочешь его добавлять, то нажми на кнопку *Пропустить*.",
             parse_mode="Markdown",
@@ -127,11 +127,11 @@ async def get_account_handler(message: types.Message, state: FSMContext):
         )
 
 
-def save_expense_to_sheet(data: dict):
+def save_income_to_sheet(data: dict):
     """
-    Saves expense data to user's Google sheet.
+    Saves income data to user's Google sheet.
 
-    :param data: Data about expense (amount, category, account, comment).
+    :param data: Data about income (amount, category, account, comment).
     """
     gsheet_id = data["gsheet_id"]
 
@@ -140,14 +140,14 @@ def save_expense_to_sheet(data: dict):
     account = data["account"]
     comment = data.get("comment", "")
 
-    add_expens(amount, category, account, gsheet_id, comment)
+    add_income(amount, category, account, gsheet_id, comment)
 
 
 async def cancel_comment_callback(call_query: types.CallbackQuery, state: FSMContext):
-    """Saves expense data to Google sheet."""
+    """Saves income data to Google sheet."""
     async with state.proxy() as data:
         data["gsheet_id"] = get_gsheet_id(call_query.from_user.id)
-        save_expense_to_sheet(data)
+        save_income_to_sheet(data)
 
     await state.finish()
     await call_query.message.answer(
@@ -161,7 +161,7 @@ async def get_comment_handler(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["comment"] = message.text
         data["gsheet_id"] = get_gsheet_id(message.from_user.id)
-        save_expense_to_sheet(data)
+        save_income_to_sheet(data)
 
     await state.finish()
     await message.answer(
@@ -170,8 +170,8 @@ async def get_comment_handler(message: types.Message, state: FSMContext):
     )
 
 
-async def cancel_adding_expense_handler(message: types.Message, state: FSMContext):
-    """Breaks the adding expense process."""
+async def cancel_adding_income_handler(message: types.Message, state: FSMContext):
+    """Breaks the adding income process."""
     await state.finish()
     await message.answer(
         "*Отмена*\n\nТеперь ты можешь продолжать вести учет расходов! 💵",
@@ -180,42 +180,42 @@ async def cancel_adding_expense_handler(message: types.Message, state: FSMContex
     )
 
 
-def register_expences_handlers(dp: Dispatcher):
+def register_incomes_handlers(dp: Dispatcher):
     """Registers all handlers related to adding an expence"""
     dp.register_message_handler(
-        cancel_adding_expense_handler,
+        cancel_adding_income_handler,
         lambda msg: msg.text.lower() == "отмена",
         state="*",
     )
 
     dp.register_message_handler(
-        add_expence_handler,
-        lambda msg: msg.text.lower() == "расход 📤",
+        add_income_handler,
+        lambda msg: msg.text.lower() == "доход 📥",
         state="*",
     )
     dp.register_message_handler(
-        add_expence_handler,
-        commands=["add_expense"],
+        add_income_handler,
+        commands=["add_income"],
         state="*",
     )
     dp.register_message_handler(
         get_category_handler,
-        state=AddsExpense.category,
+        state=AddsIncome.category,
     )
     dp.register_message_handler(
         get_amount_handler,
-        state=AddsExpense.amount,
+        state=AddsIncome.amount,
     )
     dp.register_message_handler(
         get_account_handler,
-        state=AddsExpense.account,
+        state=AddsIncome.account,
     )
     dp.register_message_handler(
         get_comment_handler,
-        state=AddsExpense.comment,
+        state=AddsIncome.comment,
     )
     dp.register_callback_query_handler(
         cancel_comment_callback,
-        lambda cb: cb.data and cb.data == "finish_expense",
-        state=AddsExpense.comment,
+        lambda cb: cb.data and cb.data == "finish_income",
+        state=AddsIncome.comment,
     )

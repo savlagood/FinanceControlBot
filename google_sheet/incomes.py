@@ -4,7 +4,7 @@ Functions for working with incomes (add).
 import datetime
 import gspread
 
-from google_sheet.accounts import get_account_names
+from google_sheet.accounts import get_account_names, change_balance
 from google_sheet.categories import get_categories
 
 service_account = gspread.service_account("google_token.json")
@@ -69,3 +69,6 @@ def add_income(amount: float, category: str, account: str, gsheet_id: str, comme
     )
     worksheet.update("H3:K3", [[category, amount, account, comment]])
     worksheet.update_acell("G3", f"=date({current_time.year}, {current_time.month}, {current_time.day})")
+
+    # Update amount on account
+    change_balance(account, worksheet.get())

@@ -30,28 +30,6 @@ def main_keyboard() -> ReplyKeyboardMarkup:
     return markup
 
 
-# def categories_keyboard(categories: list) -> ReplyKeyboardMarkup:
-#     """
-#     Keyboard with expense or income categories from user's Google sheet.
-#
-#     :param categories: Categories list.
-#
-#     :raise AssertionError: If len(categories) less than 1.
-#
-#     :return: ReplyKeyboardMarkup.
-#     """
-#     assert len(categories) > 0
-#
-#     markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-#     for i in range(0, len(categories) - 1, 2):
-#         markup.add(*categories[i:i + 2])
-#
-#     if len(categories) % 2 == 1:
-#         markup.add(categories[-1])
-#
-#     return markup
-
-
 def list_items_keyboard(items: list) -> ReplyKeyboardMarkup:
     """
     Keyboard with list items.

@@ -1,7 +1,7 @@
 """
 File with expence control handlers.
 """
-import logging
+# import logging
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
@@ -23,7 +23,7 @@ class AddsExpense(StatesGroup):
     comment = State()
 
 
-async def add_expence_handler(message: types.Message):
+async def add_expence_handler(message: types.Message, state: FSMContext):
     """Adds expence to user's Google sheet."""
     gsheet_id = get_gsheet_id(message.from_user.id)
     sheet = service_account.open_by_key(gsheet_id)
@@ -45,16 +45,18 @@ async def add_expence_handler(message: types.Message):
         )
         await AddsExpense.category.set()
 
+        async with state.proxy() as data:
+            data["categories"] = categories
+            data["accounts"] = sorted(get_account_names(sheet))
+
 
 async def get_category_handler(message: types.Message, state: FSMContext):
     """Gets category type from user."""
     category = message.text.title()
 
-    gsheet_id = get_gsheet_id(message.from_user.id)
-    sheet = service_account.open_by_key(gsheet_id)
+    async with state.proxy() as data:
+        categories = data["categories"]
 
-    categories = get_categories(sheet)["expense"]
-    categories.sort()
     if category not in categories:
         await message.answer(
             "Я не знаю такой категории, попробуй ввести ее еще раз!",
@@ -79,12 +81,7 @@ async def get_amount_handler(message: types.Message, state: FSMContext):
     else:
         async with state.proxy() as data:
             data["amount"] = amount
-
-        gsheet_id = get_gsheet_id(message.from_user.id)
-        sheet = service_account.open_by_key(gsheet_id)
-
-        accounts = get_account_names(sheet)
-        accounts.sort()
+            accounts = data["accounts"]
 
         if len(accounts) == 0:
             await state.finish()
@@ -105,11 +102,8 @@ async def get_account_handler(message: types.Message, state: FSMContext):
     """Gets user's account name."""
     account = message.text.title()
 
-    gsheet_id = get_gsheet_id(message.from_user.id)
-    sheet = service_account.open_by_key(gsheet_id)
-
-    accounts = get_account_names(sheet)
-    accounts.sort()
+    async with state.proxy() as data:
+        accounts = data["accounts"]
 
     if account not in accounts:
         await message.answer(
@@ -169,14 +163,17 @@ async def get_comment_handler(message: types.Message, state: FSMContext):
         save_expense_to_sheet(data)
 
     await state.finish()
-    await message.answer("Запись успешно добавлена в вашу Goolge таблицу!")
+    await message.answer(
+        "Запись успешно добавлена в вашу Goolge таблицу!",
+        reply_markup=main_keyboard(),
+    )
 
 
 async def cancel_adding_expense_handler(message: types.Message, state: FSMContext):
     """Breaks the adding expense process."""
     await state.finish()
     await message.answer(
-        "*Отмена*.\n\nТеперь ты можешь продолжать вести учет расходов! 💵",
+        "*Отмена*\n\nТеперь ты можешь продолжать вести учет расходов! 💵",
         parse_mode="Markdown",
         reply_markup=main_keyboard(),
     )
@@ -194,6 +191,11 @@ def register_expences_handlers(dp: Dispatcher):
         add_expence_handler,
         lambda msg: msg.text.lower() == "расход 📤",
         # commands=["add_expense"],
+        state="*",
+    )
+    dp.register_message_handler(
+        add_expence_handler,
+        commands=["add_expense"],
         state="*",
     )
     dp.register_message_handler(

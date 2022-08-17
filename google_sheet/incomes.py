@@ -47,8 +47,7 @@ def add_income(amount: float, category: str, account: str, gsheet_id: str, comme
     :param gsheet_id: ID of Google sheet.
     :param comment: Description to income.
 
-    :raise AssertionError: If category does not exist or account does not exist or
-    amount less than 0.
+    :raise AssertionError: If category does not exist or account does not exist or amount less than 0.
     """
     sheet = service_account.open_by_key(gsheet_id)
     worksheet = sheet.get_worksheet(0)

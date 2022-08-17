@@ -4,6 +4,287 @@ Functions for working with accounts (add, delete, rename, change_balance, change
 import gspread
 
 
+class AccountsSheet:
+    """Represents accounts table in user's Google sheet."""
+
+    def __init__(self, sheet: gspread.spreadsheet.Spreadsheet = None, gsheet_id: str = None):
+        """
+        One of the parameters must be passed to the function (sheet or gsheet_id) otherwise ValueError.
+
+        :param sheet: Goolge sheet object.
+        :param gsheet_id: ID of user's Goolge sheet.
+
+        :raise ValueError: If no one of the parameters (sheet or gsheet_id) were passed
+            to the function.
+        """
+        if sheet:
+            self.sheet = sheet
+        elif gsheet_id:
+            self.service_account = gspread.service_account("google_token.json")
+            self.sheet = self.service_account.open_by_key(gsheet_id)
+
+        else:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+
+        self.worksheet = self.sheet.worksheet("Настройки")
+        self.account_names, self.accounts = self.get_accounts()
+
+    def add_account(self, acc_name: str, acc_amount: float, is_acc_savings: bool = False):
+        """
+        Adds account to list.
+
+        :param acc_name: Name of new category.
+        :param acc_amount: Money amount at account.
+        :param is_acc_savings: Type of account (savings or not).
+
+        :raise ValueError: If account with acc_name already exists.
+        """
+        acc_name = acc_name.title()
+
+        if acc_name in self.account_names:
+            raise ValueError(f"Account with name {acc_name} already exists!")
+
+        last_row = len(self.account_names) + 4
+        self.worksheet.update(
+            f"E{last_row}:G{last_row}",
+            [[acc_name, acc_amount, is_acc_savings]],
+        )
+
+        self.account_names.append(acc_name)
+        self.accounts[acc_name] = {
+            "amount": acc_amount,
+            "is_saving": is_acc_savings,
+        }
+
+        # Cahnging shape format.
+        self.resize_shape(last_row, "increase")
+
+    def rename_account(self, acc_name: str, new_acc_name: str):
+        """
+        Renames account with acc_name to new_acc_name.
+
+        :param acc_name: Account name.
+        :param new_acc_name: Name in which account with acc_name will be renamed.
+
+        :raise ValueError: if account with acc_name does not exist or account with new_acc_name already exist.
+        """
+        acc_name = acc_name.title()
+        new_acc_name = new_acc_name.title()
+
+        if acc_name not in self.account_names:
+            raise ValueError(f"Account with name {acc_name} does not exist!")
+
+        if new_acc_name in self.account_names:
+            raise ValueError(f"It is imposible to rename {acc_name} account to {new_acc_name} "
+                             f"because accouunt with {new_acc_name} already exist!")
+
+        row_index = self.account_names.index(acc_name) + 1 + 3
+        self.worksheet.update(f"E{row_index}", new_acc_name)
+
+        self.account_names[row_index - 4] = new_acc_name
+        self.accounts[new_acc_name] = self.accounts[acc_name]
+        del self.accounts[acc_name]
+
+    def change_balance(self, acc_name: str, new_balance: float):
+        """
+        Changes account's balance.
+
+        :param acc_name: Account name.
+        :param new_balance: New amount on account.
+
+        :raise AssertionError: If account with acc_name does not exist.
+        """
+        acc_name = acc_name.title()
+
+        assert acc_name in self.account_names
+
+        self.worksheet.update(f"F{self.account_names.index(acc_name) + 1 + 3}", new_balance)
+        self.accounts[acc_name]["amount"] = new_balance
+
+    def change_type(self, acc_name: str, is_acc_saving: bool):
+        """
+        Changes account's type.
+
+        :param acc_name: Account name.
+        :param is_acc_saving: Type of account (savings or not).
+
+        :raise AssertionError: If account with acc_name does not exist.
+        """
+        acc_name = acc_name.title()
+
+        assert acc_name in self.account_names
+
+        self.worksheet.update(f"G{self.account_names.index(acc_name) + 1 + 3}", is_acc_saving)
+        self.accounts[acc_name]["is_saving"] = is_acc_saving
+
+    def delete_account(self, acc_name: str):
+        """
+        Deletes cat_type category with name cat_name.
+
+        :param acc_name: Account name.
+
+        :raise ValueError: If account with cat_name does not exist.
+        """
+        acc_name = acc_name.title()
+
+        if acc_name not in self.account_names:
+            raise ValueError(f"Account with name {acc_name} does not exist!")
+
+        row_index = self.account_names.index(acc_name) + 1 + 3
+        total_accs = len(self.account_names)
+
+        # Moving accounts up.
+        self.worksheet.update(
+            f"E{row_index}:G{total_accs + 3}",
+            self.worksheet.get(
+                f"E{row_index + 1}:G{total_accs + 3}"
+            )
+        )
+        self.worksheet.update(f"E{total_accs + 3}:G{total_accs + 3}", [["", "", ""]])
+
+        self.account_names.remove(acc_name)
+        del self.accounts[acc_name]
+
+        # Changing shape format.
+        self.resize_shape(total_accs + 4, "decrease")
+
+    def get_accounts(self) -> (list, dict):
+        """Returns dict with accounts."""
+        names = self.worksheet.col_values(5)[3:]
+        amounts = self.worksheet.col_values(6)[3:]
+        is_savings = self.worksheet.col_values(7)[3:]
+
+        acc_names, accounts = list(), dict()
+        for i, name in enumerate(names):
+            acc_names.append(name)
+            accounts[name] = {
+                "amount": float(amounts[i]),
+                "is_saving": True if is_savings[i].lower() == "true" else False
+            }
+
+        return acc_names, accounts
+
+    def resize_shape(self, last_row: int, direct: str):
+        """
+        Resizes accounts shape in Google sheet.
+
+        :param last_row: Index of the last row into categories table (rows starts woth 1).
+        :param direct: Direction of resizing. Must be increase or decrease.
+
+        :raise ValueError: If direct not increase/decrease.
+        :raise AssertionError: If last_row less than 1.
+        """
+        assert last_row >= 1
+
+        def set_bottom(row_index: int):
+            """
+            Sets the bottom of the shape. |__|__|__|.
+
+            :param row_index: Index of the row in Google sheet (starts with 1).
+
+            :raise AssertionError: If row_index less than 1.
+            """
+            assert row_index >= 1
+
+            self.worksheet.format(
+                f"E{row_index}",
+                {
+                    "borders": {
+                        "left": {
+                            "style": "SOLID_MEDIUM",
+                        },
+                        "right": {
+                            "style": "DOTTED",
+                        },
+                        "bottom": {
+                            "style": "SOLID_MEDIUM",
+                        }
+                    }
+                }
+            )
+            self.worksheet.format(
+                f"F{row_index}",
+                {
+                    "borders": {
+                        "left": {
+                            "style": "DOTTED",
+                        },
+                        "right": {
+                            "style": "DOTTED",
+                        },
+                        "bottom": {
+                            "style": "SOLID_MEDIUM",
+                        }
+                    }
+                }
+            )
+            self.worksheet.format(
+                f"G{row_index}",
+                {
+                    "borders": {
+                        "left": {
+                            "style": "DOTTED",
+                        },
+                        "right": {
+                            "style": "SOLID_MEDIUM",
+                        },
+                        "bottom": {
+                            "style": "SOLID_MEDIUM",
+                        }
+                    }
+                }
+            )
+
+        if direct == "increase":
+            self.worksheet.format(
+                f"E{last_row}",
+                {
+                    "borders": {
+                        "left": {
+                            "style": "SOLID_MEDIUM",
+                        },
+                        "right": {
+                            "style": "DOTTED",
+                        }
+                    }
+                }
+            )
+            self.worksheet.format(
+                f"F{last_row}",
+                {
+                    "borders": {
+                        "left": {
+                            "style": "DOTTED",
+                        },
+                        "right": {
+                            "style": "DOTTED",
+                        }
+                    }
+                }
+            )
+            self.worksheet.format(
+                f"G{last_row}",
+                {
+                    "borders": {
+                        "right": {
+                            "style": "SOLID_MEDIUM",
+                        },
+                        "left": {
+                            "style": "DOTTED",
+                        }
+                    }
+                }
+            )
+            set_bottom(last_row + 1)
+
+        elif direct == "decrease":
+            self.worksheet.format(f"E{last_row}:G{last_row}", {"borders": {}})
+            set_bottom(last_row - 1)
+
+        else:
+            raise ValueError(f"direct param must be increase or decrease but not {direct}!")
+
+
 service_account = gspread.service_account("google_token.json")
 
 

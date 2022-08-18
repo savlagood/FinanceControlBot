@@ -70,4 +70,4 @@ def add_income(amount: float, category: str, account: str, gsheet_id: str, comme
     worksheet.update_acell("G3", f"=date({current_time.year}, {current_time.month}, {current_time.day})")
 
     # Update amount on account
-    change_balance(account, worksheet.get())
+    # change_balance(account, worksheet.get())

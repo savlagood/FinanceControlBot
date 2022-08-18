@@ -7,26 +7,25 @@ import gspread
 class CategoriesSheet:
     """Represents categories table in user's Google sheet."""
 
-    def __init__(self, sheet: gspread.spreadsheet.Spreadsheet = None, gsheet_id: str = None):
+    def __init__(self, worksheet: gspread.Worksheet = None, gsheet_id: str = None):
         """
-        One of the parameters must be passed to the function (sheet or gsheet_id) otherwise ValueError.
+        One of the parameters must be passed to the function (worksheet or gsheet_id) otherwise ValueError.
 
-        :param sheet: Goolge sheet object.
+        :param worksheet: Goolge worksheet with categories table.
         :param gsheet_id: ID of user's Goolge sheet.
 
-        :raise ValueError: If no one of the parameters (sheet or gsheet_id) were passed
+        :raise ValueError: If no one of the parameters (worksheet or gsheet_id) were passed
             to the function.
         """
-        if sheet:
-            self.sheet = sheet
+        if worksheet:
+            self.worksheet = worksheet
         elif gsheet_id:
             self.service_account = gspread.service_account("google_token.json")
-            self.sheet = self.service_account.open_by_key(gsheet_id)
+            self.worksheet = self.service_account.open_by_key(gsheet_id).worksheet("Настройки")
 
         else:
             raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
 
-        self.worksheet = self.sheet.worksheet("Настройки")
         self.categories = self.get_categories()
 
     def add_category(self, cat_name: str, cat_type: str):

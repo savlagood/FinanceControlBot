@@ -7,26 +7,25 @@ import gspread
 class AccountsSheet:
     """Represents accounts table in user's Google sheet."""
 
-    def __init__(self, sheet: gspread.spreadsheet.Spreadsheet = None, gsheet_id: str = None):
+    def __init__(self, worksheet: gspread.Worksheet = None, gsheet_id: str = None):
         """
-        One of the parameters must be passed to the function (sheet or gsheet_id) otherwise ValueError.
+        One of the parameters must be passed to the function (worksheet or gsheet_id) otherwise ValueError.
 
-        :param sheet: Goolge sheet object.
+        :param worksheet: Goolge worksheet with accounts table.
         :param gsheet_id: ID of user's Goolge sheet.
 
-        :raise ValueError: If no one of the parameters (sheet or gsheet_id) were passed
+        :raise ValueError: If no one of the parameters (worksheet or gsheet_id) were passed
             to the function.
         """
-        if sheet:
-            self.sheet = sheet
+        if worksheet:
+            self.worksheet = worksheet
         elif gsheet_id:
             self.service_account = gspread.service_account("google_token.json")
-            self.sheet = self.service_account.open_by_key(gsheet_id)
+            self.worksheet = self.service_account.open_by_key(gsheet_id).worksheet("Настройки")
 
         else:
             raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
 
-        self.worksheet = self.sheet.worksheet("Настройки")
         self.account_names, self.accounts = self.get_accounts()
 
     def add_account(self, acc_name: str, acc_amount: float, is_acc_savings: bool = False):
@@ -101,6 +100,42 @@ class AccountsSheet:
         self.worksheet.update(f"F{self.account_names.index(acc_name) + 1 + 3}", new_balance)
         self.accounts[acc_name]["amount"] = new_balance
 
+    def increase_balance(self, acc_name: str, amount: float):
+        """
+        Increases acc_name's balance.
+
+        :param acc_name: Account name.
+        :param amount: Amount by which the balance will be increased.
+
+        :raise AssertionError: If account with acc_name does not exist.
+        """
+        acc_name = acc_name.title()
+
+        assert acc_name in self.account_names
+
+        self.change_balance(
+            acc_name,
+            amount + self.accounts[acc_name]["amount"],
+        )
+
+    def decrease_balance(self, acc_name: str, amount: float):
+        """
+        Decreases acc_name's balance.
+
+        :param acc_name: Account name.
+        :param amount: Amount by which the balance will be decreased.
+
+        :raise AssertionError: If account with acc_name does not exist.
+        """
+        acc_name = acc_name.title()
+
+        assert acc_name in self.account_names
+
+        self.change_balance(
+            acc_name,
+            amount - self.accounts[acc_name]["amount"],
+        )
+
     def change_type(self, acc_name: str, is_acc_saving: bool):
         """
         Changes account's type.
@@ -158,7 +193,7 @@ class AccountsSheet:
         for i, name in enumerate(names):
             acc_names.append(name)
             accounts[name] = {
-                "amount": float(amounts[i]),
+                "amount": float(amounts[i].split()[0].replace(",", "")),
                 "is_saving": True if is_savings[i].lower() == "true" else False
             }
 

@@ -4,8 +4,7 @@ Functions for working with incomes (add).
 import datetime
 import gspread
 
-from google_sheet.accounts import get_account_names, change_balance
-from google_sheet.categories import get_categories
+from google_sheet.accounts import increase_balance
 
 service_account = gspread.service_account("google_token.json")
 
@@ -37,7 +36,23 @@ def get_incomes(sheet: gspread.spreadsheet.Spreadsheet) -> list:
     return incomes
 
 
-def add_income(amount: float, category: str, account: str, gsheet_id: str, comment: str = ""):
+def get_total_incomes(worksheet: gspread.Worksheet) -> int:
+    """
+    Returns number of incomes in table.
+
+    :param worksheet: Google worksheet with incomes table.
+    """
+    return len(worksheet.col_values(7)[2:])
+
+
+def add_income(amount: float,
+               category: str,
+               account: str,
+               comment: str,
+               gsheet_id: str,
+               total_incomes: int = None,
+               account_names: list = None,
+               accounts: dict = None):
     """
     Adds income to Google sheet.
 
@@ -46,28 +61,36 @@ def add_income(amount: float, category: str, account: str, gsheet_id: str, comme
     :param account: Name of account.
     :param gsheet_id: ID of Google sheet.
     :param comment: Description to income.
+    :param total_incomes: Number of incomes in table.
+    :param account_names: List of account names.
+    :param accounts: Dict of account properties.
 
     :raise AssertionError: If category does not exist or account does not exist or amount less than 0.
     """
     sheet = service_account.open_by_key(gsheet_id)
-    worksheet = sheet.get_worksheet(0)
+    transactions_worksheet = sheet.worksheet("Транзакции")
+    settings_worksheet = sheet.worksheet("Настройки")
 
-    category = category.title()
-    account = account.title()
-
-    assert category in get_categories(sheet)["income"]
-    assert account in get_account_names(sheet)
     assert amount >= 0
 
-    total_expenses = len(get_incomes(sheet))
+    if total_incomes is None:
+        total_incomes = get_total_incomes(transactions_worksheet)
 
     current_time = datetime.datetime.now()
-    worksheet.update(
-        f"G4:K{total_expenses + 3}",
-        worksheet.get(f"G3:K{total_expenses + 2}")
-    )
-    worksheet.update("H3:K3", [[category, amount, account, comment]])
-    worksheet.update_acell("G3", f"=date({current_time.year}, {current_time.month}, {current_time.day})")
 
-    # Update amount on account
-    # change_balance(account, worksheet.get())
+    incomes = transactions_worksheet.get(f"G3:K{total_incomes + 2}")
+    for row in incomes:
+        if len(row) < 5:
+            row += [""]
+
+    transactions_worksheet.update(f"G4:K{total_incomes + 3}", incomes)
+    transactions_worksheet.update("H3:K3", [[category, amount, account, comment]])
+    transactions_worksheet.update_acell("G3", f"=date({current_time.year}, {current_time.month}, {current_time.day})")
+
+    increase_balance(
+        account,
+        amount,
+        account_names=account_names,
+        accounts=accounts,
+        worksheet=settings_worksheet,
+    )

@@ -72,7 +72,8 @@ def add_expense(amount: float,
     assert amount >= 0
 
     if total_expenses is None:
-        total_expenses = len(get_expenses(transactions_worksheet))
+        total_expenses = get_total_expenses(transactions_worksheet)
+        # total_expenses = len(get_expenses(transactions_worksheet))
 
     current_time = datetime.datetime.now()
 

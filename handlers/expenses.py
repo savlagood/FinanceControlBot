@@ -59,7 +59,7 @@ async def get_amount_handler(message: types.Message, state: FSMContext):
         if len(categories) == 0:
             await message.answer(
                 "Похоже, что ты еще не добавил ни одной категории расходов.\n"
-                "Чтобы ее добавить, введи команду /add_expense_categoryсчета"
+                "Чтобы ее добавить, введи команду /add_expense_category"
             )
             await state.finish()
 
@@ -149,8 +149,6 @@ async def save_expense_to_sheet(user_id: int, state: FSMContext, comment: str = 
             total_expenses=data["total_expenses"],
             gsheet_id=data["gsheet_id"],
         )
-
-        # change_balance(data["account"], data["accounts"]["account"])
 
     await state.finish()
     await bot.send_message(

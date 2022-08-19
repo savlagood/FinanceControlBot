@@ -244,14 +244,12 @@ class CategoriesSheet:
 service_account = gspread.service_account("google_token.json")
 
 
-def get_categories(sheet: gspread.spreadsheet.Spreadsheet) -> dict:
+def get_categories(worksheet: gspread.Worksheet) -> dict:
     """
     Returns all categories of expense/income.
 
-    :param sheet: Goolge sheet object.
+    :param worksheet: Goolge worksheet object.
     """
-    worksheet = sheet.get_worksheet(1)
-
     categories = dict()
     categories["expense"] = worksheet.col_values(2)[3:]
     categories["income"] = worksheet.col_values(3)[3:]

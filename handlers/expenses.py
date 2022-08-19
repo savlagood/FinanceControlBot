@@ -6,67 +6,42 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types.inline_keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 
+from server import bot
 from database import get_gsheet_id
 from keyboards import list_items_keyboard, main_keyboard
 
 from google_sheet.categories import get_categories, service_account
-from google_sheet.accounts import get_account_names
-from google_sheet.expenses import add_expens
+from google_sheet.accounts import get_accounts, change_balance
+from google_sheet.expenses import add_expense, get_total_expenses
 
 
 class AddsExpense(StatesGroup):
-    category = State()
     amount = State()
+    category = State()
     account = State()
     comment = State()
 
 
 async def add_expence_handler(message: types.Message, state: FSMContext):
     """Adds expence to user's Google sheet."""
+    await message.answer(
+        "*Добавление расхода*\n\nНапиши и отправь мне сумму, которую ты потратил\n\n"
+        "Чтобы прервать добавление расходов напиши *отмена*.",
+        parse_mode="Markdown",
+    )
+    await AddsExpense.amount.set()
+
     gsheet_id = get_gsheet_id(message.from_user.id)
     sheet = service_account.open_by_key(gsheet_id)
 
-    categories = get_categories(sheet)["expense"]
-    categories.sort()
-
-    if len(categories) == 0:
-        await message.answer(
-            "Похоже, что ты еще не добавил ни одной категории расходов.\n"
-            "Чтобы ее добавить, введи команду /add_expense_categoryсчета"
-        )
-
-    else:
-        await message.answer(
-            "Теперь выбери категорию расходов из списка под твоей клавиатурой.\n\n"
-            "Чтобы прервать добавление расходов напиши `отмена`",
-            reply_markup=list_items_keyboard(categories),
-        )
-        await AddsExpense.category.set()
-
-        async with state.proxy() as data:
-            data["categories"] = categories
-            data["accounts"] = sorted(get_account_names(sheet))
-
-
-async def get_category_handler(message: types.Message, state: FSMContext):
-    """Gets category type from user."""
-    category = message.text.title()
+    settings_worksheet = sheet.worksheet("Настройки")
+    transactions_worksheet = sheet.worksheet("Транзакции")
 
     async with state.proxy() as data:
-        categories = data["categories"]
-
-    if category not in categories:
-        await message.answer(
-            "Я не знаю такой категории, попробуй ввести ее еще раз!",
-            reply_markup=list_items_keyboard(categories),
-        )
-
-    else:
-        async with state.proxy() as data:
-            data["category"] = category
-
-        await message.answer("Теперь введи сумму, которую ты потратил.")
-        await AddsExpense.amount.set()
+        data["gsheet_id"] = gsheet_id
+        data["categories"] = get_categories(settings_worksheet)["expense"]
+        data["account_names"], data["accounts"] = get_accounts(settings_worksheet)
+        data["total_expenses"] = get_total_expenses(transactions_worksheet)
 
 
 async def get_amount_handler(message: types.Message, state: FSMContext):
@@ -75,38 +50,68 @@ async def get_amount_handler(message: types.Message, state: FSMContext):
     try:
         amount = float(amount)
     except ValueError:
-        await message.answer("Введи, пожалуйста, числовое значение!")
+        await message.answer("Введи числовое значение!")
     else:
         async with state.proxy() as data:
             data["amount"] = amount
-            accounts = data["accounts"]
+            categories = data["categories"]
 
-        if len(accounts) == 0:
-            await state.finish()
+        if len(categories) == 0:
             await message.answer(
-                "Вы не создали еще ни одного счета!"
-                "Чтобы его создать, введи /add_account"
+                "Похоже, что ты еще не добавил ни одной категории расходов.\n"
+                "Чтобы ее добавить, введи команду /add_expense_categoryсчета"
             )
+            await state.finish()
 
         else:
-            await AddsExpense.account.set()
+            await message.answer(
+                "Теперь выбери категорию расходов из списка под твоей клавиатурой.\n\n",
+                reply_markup=list_items_keyboard(sorted(categories)),
+            )
+            await AddsExpense.category.set()
+
+
+async def get_category_handler(message: types.Message, state: FSMContext):
+    """Gets category type from user."""
+    category = message.text
+
+    async with state.proxy() as data:
+        categories = data["categories"]
+
+    if category.lower() not in map(lambda word: word.lower(), categories):
+        await message.answer(
+            "Я не знаю такой категории, попробуй ввести ее еще раз!",
+            reply_markup=list_items_keyboard(sorted(categories)),
+        )
+
+    else:
+        async with state.proxy() as data:
+            data["category"] = category
+            account_names = data["account_names"]
+
+        if len(account_names) == 0:
+            await message.answer("Ты не создал еще ни одного счета! Чтобы его создать, введи /add_account")
+            await state.finish()
+
+        else:
             await message.answer(
                 "Выбери из списка под клавиатурой счет, с которого была совершена покупка.",
-                reply_markup=list_items_keyboard(accounts),
+                reply_markup=list_items_keyboard(sorted(account_names))
             )
+            await AddsExpense.account.set()
 
 
 async def get_account_handler(message: types.Message, state: FSMContext):
     """Gets user's account name."""
-    account = message.text.title()
+    account = message.text
 
     async with state.proxy() as data:
-        accounts = data["accounts"]
+        account_names = data["account_names"]
 
-    if account not in accounts:
+    if account.lower() not in map(lambda word: word.lower(), account_names):
         await message.answer(
             "Я не знаю такого счета, попробуй ввести его еще раз!",
-            reply_markup=list_items_keyboard(accounts)
+            reply_markup=list_items_keyboard(account_names)
         )
 
     else:
@@ -127,47 +132,42 @@ async def get_account_handler(message: types.Message, state: FSMContext):
         )
 
 
-def save_expense_to_sheet(data: dict):
+async def save_expense_to_sheet(user_id: int, state: FSMContext, comment: str = ""):
     """
     Saves expense data to user's Google sheet.
 
-    :param data: Data about expense (amount, category, account, comment).
+    :param user_id: Telegram ID of the user.
+    :param state: FSMContext object.
+    :param comment: Description to expense.
     """
-    gsheet_id = data["gsheet_id"]
+    async with state.proxy() as data:
+        add_expense(
+            data["amount"],
+            data["category"],
+            data["account"],
+            comment,
+            total_expenses=data["total_expenses"],
+            gsheet_id=data["gsheet_id"],
+        )
 
-    amount = data["amount"]
-    category = data["category"]
-    account = data["account"]
-    comment = data.get("comment", "")
+        # change_balance(data["account"], data["accounts"]["account"])
 
-    add_expens(amount, category, account, gsheet_id, comment)
+    await state.finish()
+    await bot.send_message(
+        user_id,
+        "Запись успешно добавлена в вашу Goolge таблицу!",
+        reply_markup=main_keyboard(),
+    )
 
 
 async def cancel_comment_callback(call_query: types.CallbackQuery, state: FSMContext):
     """Saves expense data to Google sheet."""
-    async with state.proxy() as data:
-        data["gsheet_id"] = get_gsheet_id(call_query.from_user.id)
-        save_expense_to_sheet(data)
-
-    await state.finish()
-    await call_query.message.answer(
-        "Запись успешно добавлена в вашу Goolge таблицу!",
-        reply_markup=main_keyboard(),
-    )
+    await save_expense_to_sheet(call_query.from_user.id, state)
 
 
 async def get_comment_handler(message: types.Message, state: FSMContext):
     """Gets user's comment and saves expense data to Google sheet."""
-    async with state.proxy() as data:
-        data["comment"] = message.text
-        data["gsheet_id"] = get_gsheet_id(message.from_user.id)
-        save_expense_to_sheet(data)
-
-    await state.finish()
-    await message.answer(
-        "Запись успешно добавлена в вашу Goolge таблицу!",
-        reply_markup=main_keyboard(),
-    )
+    await save_expense_to_sheet(message.from_user.id, state, message.text)
 
 
 async def cancel_adding_expense_handler(message: types.Message, state: FSMContext):

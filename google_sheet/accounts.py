@@ -338,6 +338,28 @@ def get_account_names(sheet: gspread.spreadsheet.Spreadsheet) -> list:
     return accounts
 
 
+def get_accounts(worksheet: gspread.Worksheet) -> (list, dict):
+    """
+    Returns dict with accounts.
+
+    :param worksheet: Google worksheet with accounts table.
+    """
+    names = worksheet.col_values(5)[3:]
+    amounts = worksheet.col_values(6)[3:]
+    is_savings = worksheet.col_values(7)[3:]
+
+    acc_names, accounts = list(), dict()
+    for i, name in enumerate(names):
+        acc_names.append(name)
+        accounts[name.lower()] = {
+            "name": name,
+            "amount": float(amounts[i].split()[0].replace(",", "")),
+            "is_saving": True if is_savings[i].lower() == "true" else False
+        }
+
+    return acc_names, accounts
+
+
 def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksheet):
     """
     Resizes accounts shape in Google sheet.
@@ -518,25 +540,118 @@ def rename_account(acc_name: str, new_acc_name: str, gsheet_id: str):
     worksheet.update(f"E{accounts.index(acc_name) + 1 + 3}", new_acc_name)
 
 
-def change_balance(acc_name: str, new_balance: float, gsheet_id: str):
+def change_balance(acc_name: str,
+                   new_balance: float,
+                   accounts: dict = None,
+                   account_names: list = None,
+                   gsheet_id: str = None,
+                   worksheet: gspread.Worksheet = None):
     """
-    Changes account's balance.
+    Changes account's balance. One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
 
     :param acc_name: Account name.
     :param new_balance: New amount on account.
+    :param account_names: List of account names.
+    :param accounts: Dict of account properties.
     :param gsheet_id: ID of Google sheet.
+    :param worksheet: Google sheet with accounts table.
 
     :raise AssertionError: If account with acc_name does not exist.
+    :raise ValueError: If no one of the parameters (worksheet or gsheet_id) were passed to the function.
     """
-    sheet = service_account.open_by_key(gsheet_id)
-    worksheet = sheet.get_worksheet(1)
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
 
-    acc_name = acc_name.title()
-    accounts = get_account_names(sheet)
+    if accounts is None or account_names is None:
+        account_names, accounts = get_accounts(worksheet)
 
-    assert acc_name in accounts
+    lower_account_names = list(map(lambda word: word.lower(), account_names))
+    assert acc_name.lower() in lower_account_names
 
-    worksheet.update(f"F{accounts.index(acc_name) + 1 + 3}", new_balance)
+    worksheet.update(f"F{lower_account_names.index(acc_name.lower()) + 1 + 3}", new_balance)
+
+
+def increase_balance(acc_name: str,
+                     amount: float,
+                     account_names: list = None,
+                     accounts: dict = None,
+                     gsheet_id: str = None,
+                     worksheet: gspread.Worksheet = None):
+    """
+    Increases acc_name's balance. One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
+
+    :param acc_name: Account name.
+    :param amount: Amount by which the balance will be decreased.
+    :param account_names: List of account names.
+    :param accounts: Dict of account properties.
+    :param gsheet_id: ID of user's Google sheet.
+    :param worksheet: Goolge sheet with accounts table.
+
+    :raise AssertionError: If account with acc_name does not exist.
+    :raise ValueError: If no one of the parameters (worksheet or gsheet_id) were passed to the function.
+    """
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
+
+    if account_names is None or accounts is None:
+        account_names, accounts = get_accounts(worksheet)
+
+    change_balance(
+        acc_name,
+        accounts[acc_name.lower()]["amount"] + amount,
+        accounts=accounts,
+        account_names=account_names,
+        worksheet=worksheet,
+    )
+
+
+def decrease_balance(acc_name: str,
+                     amount: float,
+                     account_names: list = None,
+                     accounts: dict = None,
+                     gsheet_id: str = None,
+                     worksheet: gspread.Worksheet = None):
+    """
+    Decreases acc_name's balance. One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
+
+    :param acc_name: Account name.
+    :param amount: Amount by which the balance will be decreased.
+    :param account_names: List of account names.
+    :param accounts: Dict of account properties.
+    :param gsheet_id: ID of user's Google sheet.
+    :param worksheet: Goolge sheet with accounts table.
+
+    :raise AssertionError: If account with acc_name does not exist.
+    :raise ValueError: If no one of the parameters (worksheet or gsheet_id) were passed to the function.
+    """
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
+
+    if account_names is None or accounts is None:
+        account_names, accounts = get_accounts(worksheet)
+
+    change_balance(
+        acc_name,
+        accounts[acc_name.lower()]["amount"] - amount,
+        accounts=accounts,
+        account_names=account_names,
+        worksheet=worksheet,
+    )
 
 
 def change_type(acc_name: str, is_acc_saving: bool, gsheet_id: str):

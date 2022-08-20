@@ -4,7 +4,7 @@ Functions for working with expenses (add).
 import datetime
 import gspread
 
-from google_sheet.accounts import decrease_balance
+from google_sheet.accounts import change_balance
 
 service_account = gspread.service_account("google_token.json")
 
@@ -86,7 +86,8 @@ def add_expense(amount: float,
     transactions_worksheet.update("B3:E3", [[category, amount, account, comment]])
     transactions_worksheet.update_acell("A3", f"=date({current_time.year}, {current_time.month}, {current_time.day})")
 
-    decrease_balance(
+    change_balance(
+        "decrease",
         account,
         amount,
         account_names=account_names,

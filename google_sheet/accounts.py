@@ -22,12 +22,24 @@ def get_account_names(sheet: gspread.spreadsheet.Spreadsheet) -> list:
     return accounts
 
 
-def get_accounts(worksheet: gspread.Worksheet) -> (list, dict):
+def get_accounts(worksheet: gspread.Worksheet = None, gsheet_id: str = None) -> (list, dict):
     """
-    Returns dict with accounts.
+    Returns dict with accounts. One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
 
     :param worksheet: Google worksheet with accounts table.
+    :param gsheet_id: ID of user's Google sheet.
+
+    :raise ValueError: If no one of the parameters (worksheet or gsheet_id) were passed to the function.
+        If changing_type is not decrease, increase or set.
     """
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
+
     names = worksheet.col_values(5)[3:]
     amounts = worksheet.col_values(6)[3:]
     # is_savings = worksheet.col_values(7)[3:]

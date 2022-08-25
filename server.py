@@ -37,9 +37,11 @@ if __name__ == '__main__':
     from handlers.registration import register_registration_handlers
     from handlers.expenses import register_expences_handlers
     from handlers.incomes import register_incomes_handlers
+    from handlers.settings.settings import register_settings_handlers
 
     register_registration_handlers(dp)
     register_expences_handlers(dp)
     register_incomes_handlers(dp)
+    register_settings_handlers(dp)
 
     executor.start_polling(dp, skip_updates=True)

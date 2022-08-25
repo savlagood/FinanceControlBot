@@ -24,7 +24,7 @@ def main_keyboard() -> ReplyKeyboardMarkup:
     markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     markup.add('Доход 📥', 'Расход 📤')
     markup.add('Настройки ⚙')
-    markup.add('Перевод между счетами 💱')
+    # markup.add('Перевод между счетами 💱')
     # markup.add('Настройки ⚙', 'Статистика 📈')
 
     return markup

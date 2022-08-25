@@ -95,7 +95,9 @@ async def get_amount_handler(message: types.Message, state: FSMContext):
                 logging.error("Excpetion during change_balance executing!", exc_info=exc)
                 await message.answer(
                     "*Ошибка!*\n\nНа моей стороне произошла ошибка. Если ты это читаешь, то "
-                    "напиши моему создателю: @savlagood. Он все починит)"
+                    "напиши моему создателю: @savlagood. Он все починит)",
+                    parse_mode="Markdown",
+                    reply_markup=main_keyboard(),
                 )
 
             else:

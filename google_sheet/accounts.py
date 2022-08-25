@@ -66,16 +66,16 @@ def add_account(name: str,
     Adds account to list. One of the parameters must be passed to the function
     (worksheet or gsheet_id) otherwise ValueError.
 
-    :param name: Account name.
-    :param amount: New amount on account.
-    :param account_names: List of account names.
-    :param accounts: Dict of account properties.
-    :param gsheet_id: ID of Google sheet.
-    :param worksheet: Google sheet with accounts table.
+        :param name: Account name.
+        :param amount: New amount on account.
+        :param account_names: List of account names.
+        :param accounts: Dict of account properties.
+        :param gsheet_id: ID of Google sheet.
+        :param worksheet: Google sheet with accounts table.
 
     :raise ValueError: If account with acc_name already exists.
         If no one of the parameters (worksheet or gsheet_id) were passed to the function.
-    :raise AssertionError: If amount is not float or int.
+    :raise AssertionError: If amount type is not float or int.
     """
     assert type(amount) in [int, float]
 
@@ -98,33 +98,43 @@ def add_account(name: str,
     resize_shape(last_row, "increase", worksheet)
 
 
-def rename_account(acc_name: str, new_acc_name: str, gsheet_id: str):
+def rename_account(name: str,
+                   new_name: str,
+                   account_names: list = None,
+                   gsheet_id: str = None,
+                   worksheet: gspread.Worksheet = None):
     """
-    Renames account with acc_name to new_acc_name.
+    Renames account with name to new_name. One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
 
-    :param acc_name: Account name.
-    :param new_acc_name: Name in which account with acc_name will be renamed.
-    :param gsheet_id: ID of google sheet.
+    :param name: Account name.
+    :param new_name: New account name.
+    :param account_names: List of account names.
+    :param gsheet_id: ID of Google sheet.
+    :param worksheet: Google sheet with accounts table.
 
-    :raise ValueError: if account with acc_name does not exist or
-    account with new_acc_name already exist.
+    :raise ValueError: if account with acc_name does not exist. If account with acc_name already exists.
+        If no one of the parameters (worksheet or gsheet_id) were passed to the function.
     """
-    acc_name = acc_name.title()
-    new_acc_name = new_acc_name.title()
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
 
-    sheet = service_account.open_by_key(gsheet_id)
-    worksheet = sheet.get_worksheet(1)
+    if account_names is None:
+        account_names, _ = get_accounts(worksheet)
 
-    accounts = get_account_names(sheet)
+    lowercase_account_names = list(map(lambda word: word.lower(), account_names))
+    if name.lower() not in lowercase_account_names:
+        raise ValueError(f"Account with name {name} does not exist!")
 
-    if acc_name not in accounts:
-        raise ValueError(f"Account with name {acc_name} does not exist!")
+    if new_name.lower() in lowercase_account_names:
+        raise ValueError(f"It is imposible to rename {name} account to {new_name} "
+                         f"because accouunt with {new_name} already exist!")
 
-    if new_acc_name in accounts:
-        raise ValueError(f"It is imposible to rename {acc_name} account to {new_acc_name} "
-                         f"because accouunt with {new_acc_name} already exist!")
-
-    worksheet.update(f"E{accounts.index(acc_name) + 1 + 3}", new_acc_name)
+    worksheet.update(f"E{lowercase_account_names.index(name) + 1 + 3}", new_name)
 
 
 def change_balance(changing_type: str,

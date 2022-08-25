@@ -56,30 +56,44 @@ def get_accounts(worksheet: gspread.Worksheet = None, gsheet_id: str = None) -> 
     return acc_names, accounts
 
 
-def add_account(acc_name: str, acc_amount: float, gsheet_id: str):
+def add_account(name: str,
+                amount: float,
+                accounts: dict = None,
+                account_names: list = None,
+                gsheet_id: str = None,
+                worksheet: gspread.Worksheet = None):
     """
-    Adds account to list.
+    Adds account to list. One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
 
-    :param acc_name: Name of new category.
-    :param acc_amount: Money amount at account.
-    :param gsheet_id: ID of google sheet.
+    :param name: Account name.
+    :param amount: New amount on account.
+    :param account_names: List of account names.
+    :param accounts: Dict of account properties.
+    :param gsheet_id: ID of Google sheet.
+    :param worksheet: Google sheet with accounts table.
 
     :raise ValueError: If account with acc_name already exists.
+        If no one of the parameters (worksheet or gsheet_id) were passed to the function.
+    :raise AssertionError: If amount is not float or int.
     """
-    acc_name = acc_name.title()
+    assert type(amount) in [int, float]
 
-    sheet = service_account.open_by_key(gsheet_id)
-    worksheet = sheet.get_worksheet(1)
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
 
-    accounts = get_account_names(sheet)
-    if acc_name in accounts:
-        raise ValueError(f"Account with name {acc_name} already exists!")
+    if accounts is None or account_names is None:
+        account_names, accounts = get_accounts(worksheet)
+
+    if name.lower() in accounts:
+        raise ValueError(f"Account with name {name} already exists!")
 
     last_row = len(accounts) + 4
-    worksheet.update(
-        f"E{last_row}:F{last_row}",
-        [[acc_name, acc_amount]],
-    )
+    worksheet.update(f"E{last_row}:F{last_row}", [[name, amount]])
     # Cahnging shape format.
     resize_shape(last_row, "increase", worksheet)
 

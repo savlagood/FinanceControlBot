@@ -20,9 +20,9 @@ class ChangeAmount(StatesGroup):
 
 
 @delete_previous_message
-async def change_amount_callback(call_query: types.CallbackQuery, state: FSMContext):
+async def change_amount_callback_handler(message_or_call_query: types.CallbackQuery, state: FSMContext):
     """Changes balance amount at account."""
-    user_id = call_query.from_user.id
+    user_id = message_or_call_query.from_user.id
     gsheet_id = get_gsheet_id(user_id)
 
     account_names, accounts = get_accounts(gsheet_id=gsheet_id)
@@ -115,21 +115,32 @@ async def get_new_amount_handler(message: types.Message, state: FSMContext):
                 logging.error("Excpetion during change_balance executing!", exc_info=exc)
                 await message.answer(
                     "*Ошибка!*\n\nНа моей стороне произошла ошибка. Если ты это читаешь, то "
-                    "напиши моему создателю: @savlagood. Он все починит)"
+                    "напиши моему создателю: @savlagood. Он все починит)",
+                    parse_mode="Markdown",
+                    reply_markup=main_keyboard(),
                 )
 
             else:
                 await message.answer(
-                    "*Готово!*\n\nБаланс счета успешно изменен!"
+                    "*Готово!*\n\nБаланс счета успешно изменен!",
+                    parse_mode="Markdown",
+                    reply_markup=main_keyboard(),
                 )
+
+            await state.finish()
 
 
 def register_change_amount_handlers(dp: Dispatcher):
     """Registers changing balance handlers."""
     dp.register_callback_query_handler(
-        change_amount_callback,
+        change_amount_callback_handler,
         lambda cb: cb.data == "change_amount",
     )
+    dp.register_message_handler(
+        change_amount_callback_handler,
+        commands=["change_amount"],
+    )
+
     dp.register_message_handler(
         get_account_name_handler,
         state=ChangeAmount.account_name,

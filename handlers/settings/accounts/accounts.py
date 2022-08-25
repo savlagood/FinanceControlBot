@@ -47,7 +47,7 @@ async def accounts_settings_handler_callback(message_or_call_query: Union[types.
 
 def register_accounts_settings_handlers(dp: Dispatcher):
     """Registers accounts settings handler."""
-    from change_amount import register_change_balance_handlers
+    from change_amount import register_change_amount_handlers
 
     dp.register_callback_query_handler(
         accounts_settings_handler_callback,

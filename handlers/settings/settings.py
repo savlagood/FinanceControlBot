@@ -24,7 +24,7 @@ async def settings_handler(message: types.Message):
 
 def register_settings_handlers(dp: Dispatcher):
     """Registers all handlers related to new user registration."""
-    from handlers.settings.accounts import register_accounts_settings_handlers
+    from handlers.settings.accounts.accounts import register_accounts_settings_handlers
 
     register_accounts_settings_handlers(dp)
 

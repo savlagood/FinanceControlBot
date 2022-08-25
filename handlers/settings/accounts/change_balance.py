@@ -1,12 +1,9 @@
 """
-Accounts settings.
+Changing balance functions.
 """
 import logging
 
-from typing import Union
-
 from aiogram import Dispatcher, types
-from aiogram.types.inline_keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
@@ -20,40 +17,6 @@ from server import bot
 class ChangeAmount(StatesGroup):
     account_name = State()
     new_amount = State()
-
-
-async def cancel(call_query: types.CallbackQuery):
-    """Breaks account setting process."""
-    await bot.send_message(
-        call_query.from_user.id,
-        "*Отмена*\n\nТеперь ты можешь продолжать вести учет расходов! 💵",
-        parse_mode="Markdown",
-        reply_markup=main_keyboard(),
-    )
-
-
-@delete_previous_message
-async def accounts_settings_handler_callback(message_or_call_query: Union[types.Message, types.CallbackQuery]):
-    """Accounts settings."""
-    markup = InlineKeyboardMarkup()
-    markup.row(
-        InlineKeyboardButton("Изменить баланс", callback_data="change_amount"),
-        InlineKeyboardButton("Добавить счет", callback_data="add_account"),
-    )
-    markup.row(
-        InlineKeyboardButton("Переименовать счет", callback_data="rename_account"),
-        InlineKeyboardButton("Удалить счет", callback_data="delete_account"),
-    )
-    markup.row(
-        InlineKeyboardButton("Отмена", callback_data="account_settings_cancel")
-    )
-
-    await bot.send_message(
-        message_or_call_query.from_user.id,
-        "*Настройки счетов*\n\nВыбери, что ты хочешь сделать, нажав на нужную кнопку под сообщением.",
-        parse_mode="Markdown",
-        reply_markup=markup,
-    )
 
 
 @delete_previous_message
@@ -161,19 +124,11 @@ async def get_new_amount_handler(message: types.Message, state: FSMContext):
                 )
 
 
-def register_accounts_settings_handlers(dp: Dispatcher):
-    """Registers accounts settings handler."""
-    dp.register_callback_query_handler(
-        accounts_settings_handler_callback,
-        lambda cb: cb.data == "account_settings"
-    )
+def register_change_balance_handlers(dp: Dispatcher):
+    """Registers changing balance handlers."""
     dp.register_callback_query_handler(
         change_amount_callback,
         lambda cb: cb.data == "change_amount",
-    )
-    dp.register_callback_query_handler(
-        cancel,
-        lambda cb: cb.data == "account_settings_cancel",
     )
     dp.register_message_handler(
         get_account_name_handler,

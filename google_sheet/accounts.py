@@ -188,58 +188,50 @@ def change_balance(changing_type: str,
         raise ValueError(f"changing_type must be increase/decrease/set but not {changing_type}")
 
 
-# def change_type(acc_name: str, is_acc_saving: bool, gsheet_id: str):
-#     """
-#     Changes account's type.
-#
-#     :param acc_name: Account name.
-#     :param is_acc_saving: Type of account (savings or not).
-#     :param gsheet_id: ID of Google sheet.
-#
-#     :raise AssertionError: If account with acc_name does not exist.
-#     """
-#     sheet = service_account.open_by_key(gsheet_id)
-#     worksheet = sheet.get_worksheet(1)
-#
-#     acc_name = acc_name.title()
-#     accounts = get_account_names(sheet)
-#
-#     assert acc_name in accounts
-#
-#     worksheet.update(f"G{accounts.index(acc_name) + 1 + 3}", is_acc_saving)
-
-
-def delete_account(acc_name: str, gsheet_id: str):
+def delete_account(name: str,
+                   account_names: list = None,
+                   gsheet_id: str = None,
+                   worksheet: gspread.Worksheet = None):
     """
-    Deletes cat_type category with name cat_name.
+    Deletes account with passed name.One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
 
-    :param acc_name: Account name.
+    :param name: Account name.
+    :param account_names: List of account names.
     :param gsheet_id: ID of Google sheet.
+    :param worksheet: Google sheet with accounts table.
 
-    :raise ValueError: If account with cat_name does not exist.
+    :raise ValueError: If no one of the parameters (worksheet or gsheet_id) were passed to the function.
+        If account with name does not exist.
     """
-    acc_name = acc_name.title()
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
 
-    sheet = service_account.open_by_key(gsheet_id)
-    worksheet = sheet.get_worksheet(1)
+    if account_names is None:
+        account_names, _ = get_accounts(worksheet)
 
-    accounts = get_account_names(sheet)
-    if acc_name not in accounts:
-        raise ValueError(f"Account with name {acc_name} does not exist!")
+    lowercase_account_names = list(map(lambda word: word.lower(), account_names))
+    if name not in lowercase_account_names:
+        raise ValueError(f"Account with name {name} does not exist!")
 
-    row_index = accounts.index(acc_name) + 1 + 3
+    row_index = account_names.index(name) + 1 + 3
 
     # Moving accounts up.
+    num_accounts = len(account_names)
     worksheet.update(
-        f"E{row_index}:G{len(accounts) + 3}",
+        f"E{row_index}:G{num_accounts + 3}",
         worksheet.get(
-            f"E{row_index + 1}:G{len(accounts) + 3}"
+            f"E{row_index + 1}:G{num_accounts + 3}"
         )
     )
-    worksheet.update(f"E{len(accounts) + 3}:G{len(accounts) + 3}", [["", "", ""]])
+    worksheet.update(f"E{num_accounts + 3}:G{num_accounts + 3}", [["", "", ""]])
 
     # Changing shape format.
-    resize_shape(len(accounts) + 4, "decrease", worksheet)
+    resize_shape(num_accounts + 4, "decrease", worksheet)
 
 
 def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksheet):

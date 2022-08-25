@@ -3,6 +3,8 @@ Adding account functions.
 """
 import logging
 
+from typing import Union
+
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -20,7 +22,8 @@ class AddingAccount(StatesGroup):
 
 
 @delete_previous_message
-async def adding_account_callback_handler(message_or_callback: types.Message, state: FSMContext):
+async def adding_account_callback_handler(message_or_callback: Union[types.Message, types.CallbackQuery],
+                                          state: FSMContext):
     """Starts adding account process."""
     user_id = message_or_callback.from_user.id
     gsheet_id = get_gsheet_id(user_id)

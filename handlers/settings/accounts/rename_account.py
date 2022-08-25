@@ -3,6 +3,8 @@ Renaming account functions.
 """
 import logging
 
+from typing import Union
+
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -20,7 +22,8 @@ class RenameAccount(StatesGroup):
 
 
 @delete_previous_message
-async def rename_account_callback_handler(message_or_call_query: types.CallbackQuery, state: FSMContext):
+async def rename_account_callback_handler(message_or_call_query: Union[types.Message, types.CallbackQuery],
+                                          state: FSMContext):
     """Renames account."""
     user_id = message_or_call_query.from_user.id
     gsheet_id = get_gsheet_id(user_id)
@@ -38,7 +41,6 @@ async def rename_account_callback_handler(message_or_call_query: types.CallbackQ
     else:
         async with state.proxy() as data:
             data["gsheet_id"] = gsheet_id
-            data["account_names"] = account_names
             data["accounts"] = accounts
 
         await bot.send_message(

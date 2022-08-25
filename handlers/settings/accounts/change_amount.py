@@ -3,6 +3,8 @@ Changing balance functions.
 """
 import logging
 
+from typing import Union
+
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -20,7 +22,8 @@ class ChangeAmount(StatesGroup):
 
 
 @delete_previous_message
-async def change_amount_callback_handler(message_or_call_query: types.CallbackQuery, state: FSMContext):
+async def change_amount_callback_handler(message_or_call_query: Union[types.Message, types.CallbackQuery],
+                                         state: FSMContext):
     """Changes balance amount at account."""
     user_id = message_or_call_query.from_user.id
     gsheet_id = get_gsheet_id(user_id)

@@ -124,7 +124,7 @@ async def get_new_amount_handler(message: types.Message, state: FSMContext):
                 )
 
 
-def register_change_balance_handlers(dp: Dispatcher):
+def register_change_amount_handlers(dp: Dispatcher):
     """Registers changing balance handlers."""
     dp.register_callback_query_handler(
         change_amount_callback,

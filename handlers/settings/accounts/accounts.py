@@ -6,19 +6,8 @@ from typing import Union
 from aiogram import Dispatcher, types
 from aiogram.types.inline_keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 
-from keyboards import main_keyboard
 from utils import delete_previous_message
 from server import bot
-
-
-async def cancel(call_query: types.CallbackQuery):
-    """Breaks account setting process."""
-    await bot.send_message(
-        call_query.from_user.id,
-        "*Отмена*\n\nТеперь ты можешь продолжать вести учет расходов! 💵",
-        parse_mode="Markdown",
-        reply_markup=main_keyboard(),
-    )
 
 
 @delete_previous_message
@@ -55,10 +44,6 @@ def register_accounts_settings_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(
         accounts_settings_handler_callback,
         lambda cb: cb.data == "account_settings"
-    )
-    dp.register_callback_query_handler(
-        cancel,
-        lambda cb: cb.data == "account_settings_cancel",
     )
 
     register_change_amount_handlers(dp)

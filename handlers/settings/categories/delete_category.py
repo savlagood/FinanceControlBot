@@ -41,9 +41,10 @@ async def delete_category_callback_handler(message_or_call_query: Union[types.Me
 async def get_category_type_handler(message: types.Message, state: FSMContext):
     """Gets category type from user."""
     category_type = message.text.lower()
-    if category_type in ["expense", "income"]:
+    if category_type in ["расходы", "доходы"]:
+        category_type = category_type.replace("расходы", "expense").replace("доходы", "income")
         async with state.proxy() as data:
-            categories = get_categories(data["gsheet_id"])[category_type]
+            categories = get_categories(data["gsheet_id"])
             data["categories"] = categories
             data["category_type"] = category_type
 

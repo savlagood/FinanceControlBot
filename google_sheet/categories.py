@@ -31,30 +31,38 @@ def get_categories(gsheet_id: str = None, worksheet: gspread.Worksheet = None) -
     return categories
 
 
-def add_category(cat_name: str, cat_type: str, gsheet_id: str):
+def add_category(cat_name: str,
+                 cat_type: str,
+                 categories: dict = None,
+                 gsheet_id: str = None,
+                 worksheet: gspread.Worksheet = None):
     """
-    Adds category to list.
+    Adds category to list. One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
 
     :param cat_name: Name of new category.
     :param cat_type: Type of catrgory (expense/income).
-    :param gsheet_id: ID of google sheet.
+    :param categories: Dict of expense/income categories.
+    :param gsheet_id: ID of user's Google sheet.
+    :param worksheet: Google worksheet with category table.
 
     :raise ValueError: If category with cat_name already exists.
-    If cat_type not income/expense.
+        If cat_type not income/expense.
+        If no one of the parameters (worksheet or gsheet_id) were passed to the function.
     """
-    cat_type = cat_type.lower()
-    cat_name = cat_name.title()
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
 
-    sheet = service_account.open_by_key(gsheet_id)
-    worksheet = sheet.get_worksheet(1)
-
+    if categories is None:
+        categories = get_categories(worksheet=worksheet)
     if cat_type not in ["expense", "income"]:
         raise ValueError(f"cat_type must be income or expense but not {cat_type}!")
-
-    categories = get_categories(sheet)
-    if cat_name in categories[cat_type]:
-        raise ValueError(f"{cat_type.title()} category with name "
-                         f"{cat_name} already exists!")
+    if cat_name.lower() in map(lambda word: word.lower(), categories[cat_type]):
+        raise ValueError(f"{cat_type.title()} category with name {cat_name} already exist!")
 
     num_expense_cats = len(categories["expense"])
     num_income_cats = len(categories["income"])
@@ -132,7 +140,7 @@ def delete_category(cat_name: str,
     :param worksheet: Google worksheet with categories table.
 
     :raise ValueError: If category with cat_name does not exist.
-        If cat_type not income/expense. ValueError: If no one of
+        If cat_type not income/expense. If no one of
         the parameters (worksheet or gsheet_id) were passed to the function.
     """
     if worksheet is None:
@@ -142,8 +150,9 @@ def delete_category(cat_name: str,
             sheet = service_account.open_by_key(gsheet_id)
             worksheet = sheet.worksheet("Настройки")
 
-    # cat_name = cat_name.title()
-    # cat_type = cat_type.lower()
+    if categories is None:
+        categories = get_categories(worksheet=worksheet)
+
     cat_type = cat_type.lower()
 
     if cat_type == "expense":

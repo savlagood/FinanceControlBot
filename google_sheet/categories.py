@@ -59,8 +59,11 @@ def add_category(cat_name: str,
 
     if categories is None:
         categories = get_categories(worksheet=worksheet)
+
+    cat_type = cat_type.lower()
     if cat_type not in ["expense", "income"]:
         raise ValueError(f"cat_type must be income or expense but not {cat_type}!")
+
     if cat_name.lower() in map(lambda word: word.lower(), categories[cat_type]):
         raise ValueError(f"{cat_type.title()} category with name {cat_name} already exist!")
 
@@ -83,25 +86,36 @@ def add_category(cat_name: str,
         resize_shape(last_row, "increase", worksheet)
 
 
-def rename_category(cat_name: str, new_cat_name: str, cat_type: str, gsheet_id: str):
+def rename_category(cat_name: str,
+                    new_cat_name: str,
+                    cat_type: str,
+                    categories: dict = None,
+                    gsheet_id: str = None,
+                    worksheet: gspread.Worksheet = None):
     """
-    Renames a category with cat_name to new_cat_name.
+    Renames a category with cat_name to new_cat_name. One of the parameters must be passed to the function
+    (worksheet or gsheet_id) otherwise ValueError.
 
     :param cat_name: Name of category.
     :param new_cat_name: Name in which category with cat_name will be renamed.
     :param cat_type: Type of catrgory (expense/income).
+    :param categories: Dict of expense/income categories.
     :param gsheet_id: ID of google sheet.
+    :param worksheet: Google worksheet with categories table.
 
     :raise ValueError: if category with cat_name does not exist or
-    category with new_cat_name already exist. If cat_type not income/expense.
+        category with new_cat_name already exist.
+        If cat_type not income/expense.
+        If no one of the parameters (worksheet or gsheet_id) were passed to the function.
     """
-    cat_name = cat_name.title()
-    new_cat_name = new_cat_name.title()
+    if worksheet is None:
+        if gsheet_id is None:
+            raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
+        else:
+            sheet = service_account.open_by_key(gsheet_id)
+            worksheet = sheet.worksheet("Настройки")
+
     cat_type = cat_type.lower()
-
-    sheet = service_account.open_by_key(gsheet_id)
-    worksheet = sheet.get_worksheet(1)
-
     if cat_type == "expense":
         cell_index = "B"
     elif cat_type == "income":
@@ -109,18 +123,17 @@ def rename_category(cat_name: str, new_cat_name: str, cat_type: str, gsheet_id: 
     else:
         raise ValueError(f"cat_type must be income or expense but not {cat_type}!")
 
-    categories = get_categories(sheet)
+    if categories is None:
+        categories = get_categories(worksheet=worksheet)[cat_type]
 
-    if cat_name not in categories[cat_type]:
-        raise ValueError(f"{cat_type.title()} category with name {cat_name} "
-                         "does not exist!")
+    lowercase_categories = list(map(lambda word: word.lower(), categories))
+    if cat_name not in lowercase_categories:
+        raise ValueError(f"{cat_type.title()} category with name {cat_name} does not exist!")
+    if new_cat_name in lowercase_categories:
+        raise ValueError(f"It is imposible to rename {cat_name} category to {new_cat_name} because "
+                         f"category with {new_cat_name} already exist!")
 
-    if new_cat_name in categories[cat_type]:
-        raise ValueError(f"It is imposible to rename {cat_name} category "
-                         f"to {new_cat_name} because category with "
-                         f"{new_cat_name} already exist!")
-
-    cell_index += str(categories[cat_type].index(cat_name) + 1 + 3)
+    cell_index += str(lowercase_categories.index(cat_name.lower()) + 1 + 3)
     worksheet.update(cell_index, new_cat_name)
 
 
@@ -135,7 +148,7 @@ def delete_category(cat_name: str,
 
     :param cat_name: Name of category.
     :param cat_type: Type of catrgory (expense/income).
-    :param categories: List of categories.
+    :param categories: Dict of categories.
     :param gsheet_id: ID of Google sheet.
     :param worksheet: Google worksheet with categories table.
 
@@ -150,11 +163,7 @@ def delete_category(cat_name: str,
             sheet = service_account.open_by_key(gsheet_id)
             worksheet = sheet.worksheet("Настройки")
 
-    if categories is None:
-        categories = get_categories(worksheet=worksheet)
-
     cat_type = cat_type.lower()
-
     if cat_type == "expense":
         col_index = "B"
     elif cat_type == "income":
@@ -162,10 +171,17 @@ def delete_category(cat_name: str,
     else:
         raise ValueError(f"cat_type must be income or expense but not {cat_type}!")
 
-    if cat_name not in categories[cat_type]:
+    if categories is None:
+        categories = get_categories(worksheet=worksheet)
+
+    lowercase_categories = dict()
+    lowercase_categories["expense"] = list(map(lambda word: word.lower(), categories["expense"]))
+    lowercase_categories["income"] = list(map(lambda word: word.lower(), categories["income"]))
+
+    if cat_name.lower() not in lowercase_categories[cat_type]:
         raise ValueError(f"{cat_type.title()} category with name {cat_name} does not exist!")
 
-    row_index = categories[cat_type].index(cat_name) + 1 + 3
+    row_index = lowercase_categories[cat_type].index(cat_name.lower()) + 1 + 3
 
     # Moving categories up.
     worksheet.update(

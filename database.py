@@ -44,6 +44,16 @@ def update_gsheet_id(user_id: int, gsheet_id: str) -> User:
     return User(user_id, gsheet_id)
 
 
+def get_gsheet_id(user_id: int) -> str:
+    """
+    Returns user's Google sheet ID.
+
+    :param user_id: Telegram ID of the user.
+    """
+    _, gsheet_id = list(cursor.execute(f"SELECT * FROM user WHERE id={user_id}"))[0]
+    return gsheet_id
+
+
 def get_user(user_id: int) -> User:
     """
     Gets user from the database by user_id

@@ -126,14 +126,17 @@ def rename_category(cat_name: str,
     if categories is None:
         categories = get_categories(worksheet=worksheet)[cat_type]
 
-    lowercase_categories = list(map(lambda word: word.lower(), categories))
-    if cat_name not in lowercase_categories:
+    lowercase_categories = dict()
+    lowercase_categories["expense"] = list(map(lambda word: word.lower(), categories["expense"]))
+    lowercase_categories["income"] = list(map(lambda word: word.lower(), categories["income"]))
+
+    if cat_name.lower() not in lowercase_categories[cat_type]:
         raise ValueError(f"{cat_type.title()} category with name {cat_name} does not exist!")
-    if new_cat_name in lowercase_categories:
+    if new_cat_name.lower() in lowercase_categories[cat_type]:
         raise ValueError(f"It is imposible to rename {cat_name} category to {new_cat_name} because "
                          f"category with {new_cat_name} already exist!")
 
-    cell_index += str(lowercase_categories.index(cat_name.lower()) + 1 + 3)
+    cell_index += str(lowercase_categories[cat_type].index(cat_name.lower()) + 1 + 3)
     worksheet.update(cell_index, new_cat_name)
 
 

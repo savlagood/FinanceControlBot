@@ -23,7 +23,7 @@ async def accounts_settings_handler_callback(message_or_call_query: Union[types.
         InlineKeyboardButton("Удалить счет", callback_data="delete_account"),
     )
     markup.row(
-        InlineKeyboardButton("Отмена", callback_data="account_settings_cancel")
+        InlineKeyboardButton("Отмена", callback_data="settings_cancel")
     )
 
     await bot.send_message(
@@ -36,10 +36,10 @@ async def accounts_settings_handler_callback(message_or_call_query: Union[types.
 
 def register_accounts_settings_handlers(dp: Dispatcher):
     """Registers accounts settings handler."""
-    from change_amount import register_change_amount_handlers
-    from add_account import register_adding_account_handlers
-    from rename_account import register_rename_account_handlers
-    from delete_account import register_delete_account_handlers
+    from handlers.settings.accounts.change_amount import register_change_amount_handlers
+    from handlers.settings.accounts.add_account import register_adding_account_handlers
+    from handlers.settings.accounts.rename_account import register_rename_account_handlers
+    from handlers.settings.accounts.delete_account import register_delete_account_handlers
 
     dp.register_callback_query_handler(
         accounts_settings_handler_callback,

@@ -21,7 +21,7 @@ class ChangeAmount(StatesGroup):
     new_amount = State()
 
 
-@delete_previous_message
+# @delete_previous_message
 async def change_amount_callback_handler(message_or_call_query: Union[types.Message, types.CallbackQuery],
                                          state: FSMContext):
     """Changes balance amount at account."""
@@ -72,7 +72,8 @@ async def get_account_name_handler(message: types.Message, state: FSMContext):
 
         current_amount = accounts[account_name]["amount"]
         await message.answer(
-            f"*Изменение баланса*\n\n*Текущая сумма на счету: {current_amount}*\nВведи новую сумму."
+            f"*Изменение баланса*\n\nТекущая сумма на счету: {current_amount}\nВведи новую сумму.",
+            parse_mode="Markdown",
         )
         await ChangeAmount.new_amount.set()
 

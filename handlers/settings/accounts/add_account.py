@@ -21,7 +21,7 @@ class AddingAccount(StatesGroup):
     amount = State()
 
 
-@delete_previous_message
+# @delete_previous_message
 async def adding_account_callback_handler(message_or_callback: Union[types.Message, types.CallbackQuery],
                                           state: FSMContext):
     """Starts adding account process."""

@@ -21,7 +21,7 @@ class RenameAccount(StatesGroup):
     new_account_name = State()
 
 
-@delete_previous_message
+# @delete_previous_message
 async def rename_account_callback_handler(message_or_call_query: Union[types.Message, types.CallbackQuery],
                                           state: FSMContext):
     """Renames account."""
@@ -42,6 +42,7 @@ async def rename_account_callback_handler(message_or_call_query: Union[types.Mes
         async with state.proxy() as data:
             data["gsheet_id"] = gsheet_id
             data["accounts"] = accounts
+            data["account_names"] = account_names
 
         await bot.send_message(
             user_id,
@@ -64,7 +65,8 @@ async def get_account_name_handler(message: types.Message, state: FSMContext):
             data["account_name"] = account_name
 
         await message.answer(
-            f"*Изменение названия счета*\n\nВведи новое название счета."
+            f"*Изменение названия счета*\n\nВведи новое название счета.",
+            parse_mode="Markdown",
         )
         await RenameAccount.new_account_name.set()
 
@@ -83,7 +85,7 @@ async def get_new_account_name_handler(message: types.Message, state: FSMContext
     async with state.proxy() as data:
         account_names = data["account_names"]
 
-    if new_name in map(lambda word: word.lower(), account_names):
+    if new_name.lower() in map(lambda word: word.lower(), account_names):
         await message.answer(
             f"Счет с именем: {new_name} уже *существует!* Придумай другое название!",
             parse_mode="Markdown",
@@ -124,7 +126,7 @@ def register_rename_account_handlers(dp: Dispatcher):
     """Registers handlers for rename account."""
     dp.register_callback_query_handler(
         rename_account_callback_handler,
-        lambda cb: cb.data == "change_amount",
+        lambda cb: cb.data == "rename_account",
     )
     dp.register_message_handler(
         rename_account_callback_handler,

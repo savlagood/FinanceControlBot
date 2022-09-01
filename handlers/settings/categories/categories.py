@@ -33,11 +33,11 @@ async def categories_settings_callback_handler(message_or_call_query: Union[type
 
 def register_categories_settings_handlers(dp: Dispatcher):
     """Registers handlers related to categories settings."""
-    from add_category import register_add_category_handlers
-    from delete_category import register_delete_category_handlers
-    from rename_category import register_rename_category_handlers
+    from handlers.settings.categories.add_category import register_add_category_handlers
+    from handlers.settings.categories.delete_category import register_delete_category_handlers
+    from handlers.settings.categories.rename_category import register_rename_category_handlers
 
-    dp.callback_query_handlers(
+    dp.register_callback_query_handler(
         categories_settings_callback_handler,
         lambda cb: cb.data == "settings_categories",
     )

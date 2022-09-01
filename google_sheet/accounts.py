@@ -215,10 +215,10 @@ def delete_account(name: str,
         account_names, _ = get_accounts(worksheet)
 
     lowercase_account_names = list(map(lambda word: word.lower(), account_names))
-    if name not in lowercase_account_names:
+    if name.lower() not in lowercase_account_names:
         raise ValueError(f"Account with name {name} does not exist!")
 
-    row_index = account_names.index(name) + 1 + 3
+    row_index = lowercase_account_names.index(name.lower()) + 1 + 3
 
     # Moving accounts up.
     num_accounts = len(account_names)
@@ -281,22 +281,6 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
                         "style": "DOTTED",
                     },
                     "right": {
-                        "style": "DOTTED",
-                    },
-                    "bottom": {
-                        "style": "SOLID_MEDIUM",
-                    }
-                }
-            }
-        )
-        worksheet.format(
-            f"G{row_index}",
-            {
-                "borders": {
-                    "left": {
-                        "style": "DOTTED",
-                    },
-                    "right": {
                         "style": "SOLID_MEDIUM",
                     },
                     "bottom": {
@@ -305,6 +289,38 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
                 }
             }
         )
+        # worksheet.format(
+        #     f"F{row_index}",
+        #     {
+        #         "borders": {
+        #             "left": {
+        #                 "style": "DOTTED",
+        #             },
+        #             "right": {
+        #                 "style": "DOTTED",
+        #             },
+        #             "bottom": {
+        #                 "style": "SOLID_MEDIUM",
+        #             }
+        #         }
+        #     }
+        # )
+        # worksheet.format(
+        #     f"G{row_index}",
+        #     {
+        #         "borders": {
+        #             "left": {
+        #                 "style": "DOTTED",
+        #             },
+        #             "right": {
+        #                 "style": "SOLID_MEDIUM",
+        #             },
+        #             "bottom": {
+        #                 "style": "SOLID_MEDIUM",
+        #             }
+        #         }
+        #     }
+        # )
 
     if direct == "increase":
         worksheet.format(
@@ -324,19 +340,6 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
             f"F{last_row}",
             {
                 "borders": {
-                    "left": {
-                        "style": "DOTTED",
-                    },
-                    "right": {
-                        "style": "DOTTED",
-                    }
-                }
-            }
-        )
-        worksheet.format(
-            f"G{last_row}",
-            {
-                "borders": {
                     "right": {
                         "style": "SOLID_MEDIUM",
                     },
@@ -346,6 +349,32 @@ def resize_shape(last_row: int, direct: str, worksheet: gspread.worksheet.Worksh
                 }
             }
         )
+        # worksheet.format(
+        #     f"F{last_row}",
+        #     {
+        #         "borders": {
+        #             "left": {
+        #                 "style": "DOTTED",
+        #             },
+        #             "right": {
+        #                 "style": "DOTTED",
+        #             }
+        #         }
+        #     }
+        # )
+        # worksheet.format(
+        #     f"G{last_row}",
+        #     {
+        #         "borders": {
+        #             "right": {
+        #                 "style": "SOLID_MEDIUM",
+        #             },
+        #             "left": {
+        #                 "style": "DOTTED",
+        #             }
+        #         }
+        #     }
+        # )
         set_bottom(last_row + 1)
 
     elif direct == "decrease":

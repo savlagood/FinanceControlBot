@@ -57,8 +57,7 @@ async def get_account_name_handler(message: types.Message, state: FSMContext):
         account_names = data["account_names"]
         gsheet_id = data["gsheet_id"]
 
-    lowercase_account_names = list(map(lambda word: word.lower(), account_names))
-    if name not in lowercase_account_names:
+    if name.lower() not in map(lambda word: word.lower(), account_names):
         await message.answer(
             "Упс!\nЯ такого счета не знаю! Похоже, что ты ошибся в названии. Попробуй еще раз!",
             parse_mode="Markdown",

@@ -69,7 +69,7 @@ async def get_account_name_handler(message: types.Message, state: FSMContext):
         try:
             delete_account(name, account_names=account_names, gsheet_id=gsheet_id)
         except Exception as exc:
-            logging.error("Excpetion during rename_account executing!", exc_info=exc)
+            logging.error("Excpetion during delete_account executing!", exc_info=exc)
             await message.answer(
                 "*Ошибка!*\n\nНа моей стороне произошла ошибка. Если ты это читаешь, то "
                 "напиши моему создателю: @savlagood. Он все починит)",

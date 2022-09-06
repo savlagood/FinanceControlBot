@@ -1,3 +1,4 @@
+# import os
 import logging
 
 from aiogram import Dispatcher, executor, Bot, types
@@ -6,6 +7,8 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from config import TELEGRAM_TOKEN
 from keyboards import register_keyboard
 
+
+# PORT = int(os.environ.get("PORT", 5000))
 
 bot = Bot(TELEGRAM_TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
@@ -45,3 +48,4 @@ if __name__ == '__main__':
     register_settings_handlers(dp)
 
     executor.start_polling(dp, skip_updates=True)
+    # executor.set_webhook(dp, skip_updates=True)

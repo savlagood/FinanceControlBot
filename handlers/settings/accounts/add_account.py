@@ -12,8 +12,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from database import get_gsheet_id
 from google_sheet.accounts import get_accounts, add_account
 from server import bot
-from utils import delete_previous_message
 from keyboards import main_keyboard
+from config import CREATOR
 
 
 class AddingAccount(StatesGroup):
@@ -95,10 +95,10 @@ async def get_amount_handler(message: types.Message, state: FSMContext):
                     gsheet_id=data["gsheet_id"],
                 )
             except Exception as exc:
-                logging.error("Excpetion during change_balance executing!", exc_info=exc)
+                logging.error("Excpetion during add_account executing!", exc_info=exc)
                 await message.answer(
                     "*Ошибка!*\n\nНа моей стороне произошла ошибка. Если ты это читаешь, то "
-                    "напиши моему создателю: @savlagood. Он все починит)",
+                    f"напиши моему создателю: {CREATOR}. Он все починит)",
                     parse_mode="Markdown",
                     reply_markup=main_keyboard(),
                 )

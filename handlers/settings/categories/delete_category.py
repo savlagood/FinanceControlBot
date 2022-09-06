@@ -13,6 +13,7 @@ from database import get_gsheet_id
 from google_sheet.categories import get_categories, delete_category
 from server import bot
 from keyboards import list_items_keyboard, main_keyboard
+from config import CREATOR
 
 
 class DeleteCategory(StatesGroup):
@@ -93,7 +94,7 @@ async def get_category_name_handler(message: types.Message, state: FSMContext):
             logging.error("Excpetion during delete_category executing!", exc_info=exc)
             await message.answer(
                 "*Ошибка!*\n\nНа моей стороне произошла ошибка. Если ты это читаешь, то "
-                "напиши моему создателю: @savlagood. Он все починит)",
+                f"напиши моему создателю: {CREATOR}. Он все починит)",
                 parse_mode="Markdown",
                 reply_markup=main_keyboard(),
             )

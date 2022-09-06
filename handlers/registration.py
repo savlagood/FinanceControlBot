@@ -18,6 +18,7 @@ import database as db
 from server import bot
 from utils import delete_previous_message, is_gsheet_id_correct
 from keyboards import main_keyboard
+from config import LINK_TO_GOOGLE_SHEET, BOT_EMAIL
 
 
 class GetLinkToGoogleSheet(StatesGroup):
@@ -91,16 +92,28 @@ async def google_drive_sign_in_callback(call_query: types.CallbackQuery):
     markup.row(InlineKeyboardButton("<<< Назад ↩", callback_data="register"))
     markup.row(InlineKeyboardButton("Отмена ❌", callback_data="reg_cancel"))
 
-    await bot.send_animation(
+    # await bot.send_animation(
+    #     call_query.from_user.id,
+    #     InputFile("media/make_copy.gif"),
+    #     caption="*ШАГ 2*\n\n"
+    #             "Отлично!\nТеперь перейди по [уже другой ссылке]"
+    #             f"({LINK_TO_GOOGLE_SHEET})"
+    #             " и выполни следующие действия:\n"
+    #             "1. На верхней панели нажми на *\"Файл\" -> \"Создать копию\"*.\n"
+    #             "2. Теперь введи название для файла (любой текст) и выбери "
+    #             "папку, в которую он будет сохранен.\n\n",
+    #     parse_mode="Markdown",
+    #     reply_markup=markup,
+    # )
+    await bot.send_message(
         call_query.from_user.id,
-        InputFile("media/gandalf.gif"),
-        caption="*ШАГ 2*\n\n"
-                "Отлично!\nТеперь перейди по [уже другой ссылке]("
-                "https://docs.google.com/spreadsheets/d/1L87QNYDyr7b1wUH_W_6v6lPopJafV6bsnenZmRH2cnQ/edit?usp=sharing"
-                ") и выполни следующие действия:\n"
-                "1. На верхней панели нажми на *\"Файл\" -> \"Создать копию\"*.\n"
-                "2. Теперь введи название для файла (любой текст) и выбери "
-                "папку, в которую он будет сохранен.\n\n",
+        "*ШАГ 2*\n\n"
+        "Отлично!\nТеперь перейди по [уже другой ссылке]"
+        f"({LINK_TO_GOOGLE_SHEET})"
+        " и выполни следующие действия:\n"
+        "1. На верхней панели нажми на *\"Файл\" -> \"Создать копию\"*.\n"
+        "2. Теперь введи название для файла (любой текст) и выбери "
+        "папку, в которую он будет сохранен.\n\n",
         parse_mode="Markdown",
         reply_markup=markup,
     )
@@ -114,17 +127,31 @@ async def share_google_sheet_to_bot_callback(call_query: types.CallbackQuery):
     markup.row(InlineKeyboardButton("<<< Назад ↩", callback_data="google_drive_sign_in"))
     markup.row(InlineKeyboardButton("Отмена ❌", callback_data="reg_cancel"))
 
-    await bot.send_animation(
+    # await bot.send_animation(
+    #     call_query.from_user.id,
+    #     InputFile("media/share_file.gif"),
+    #     caption="*ШАГ 3*\n\n"
+    #             "Супер!\nТеперь нажми в правом верхнем углу на кнопку "
+    #             "*\"Настройки доступа\"* и в поле ввода вставь мой email адрес: "
+    #             f"`{BOT_EMAIL}` "
+    #             "(нажми на него и он скопируется).\n"
+    #             "Справа от поля выбери роль *Редактор* (обычно стоит "
+    #             "по умолчанию редактор), убери галочку с "
+    #             "*Уведомить пользователей* и нажми на кнопку *Настройки доступа*. ",
+    #     parse_mode="Markdown",
+    #     reply_markup=markup,
+    # )
+
+    await bot.send_message(
         call_query.from_user.id,
-        InputFile("media/harry.gif"),
-        caption="*ШАГ 3*\n\n"
-                "Супер!\nТеперь нажми в правом верхнем углу на кнопку "
-                "*\"Настройки доступа\"* и в поле ввода вставь мой email адрес: "
-                "`finance-control-bot@financecontrolbot.iam.gserviceaccount.com` "
-                "(нажми на него и он скопируется).\n"
-                "Справа от поля выбери роль *Редактор* (обычно стоит "
-                "по умолчанию редактор), убери галочку с "
-                "*Уведомить пользователей* и нажми на кнопку *Настройки доступа*. ",
+        "*ШАГ 3*\n\n"
+        "Супер!\nТеперь нажми в правом верхнем углу на кнопку "
+        "*\"Настройки доступа\"* и в поле ввода вставь мой email адрес: "
+        f"`{BOT_EMAIL}` "
+        "(нажми на него и он скопируется).\n"
+        "Справа от поля выбери роль *Редактор* (обычно стоит "
+        "по умолчанию редактор), убери галочку с "
+        "*Уведомить пользователей* и нажми на кнопку *Настройки доступа*. ",
         parse_mode="Markdown",
         reply_markup=markup,
     )
@@ -137,13 +164,22 @@ async def get_user_google_sheet_id_callback(call_query: types.CallbackQuery):
     markup.row(InlineKeyboardButton("<<< Назад ↩", callback_data="share_google_sheet_to_bot"))
     markup.row(InlineKeyboardButton("Отмена ❌", callback_data="reg_cancel"))
 
-    await bot.send_animation(
+    # await bot.send_animation(
+    #     call_query.from_user.id,
+    #     InputFile("media/copy_link.gif"),
+    #     caption="*ШАГ 4*\n\n"
+    #             "Ок!\nТеперь в *Настройках доступа* нажми *Копировать ссылку*, "
+    #             "она сохранится в буфер обмена.\n"
+    #             "Отправь ее мне, чтобы я смог подключиться к твоей таблице!",
+    #     parse_mode="Markdown",
+    #     reply_markup=markup,
+    # )
+    await bot.send_message(
         call_query.from_user.id,
-        InputFile("media/biden.gif"),
-        caption="*ШАГ 4*\n\n"
-                "Ок!\nТеперь в *Настройках доступа* нажми *Копировать ссылку*, "
-                "она сохранится в буфер обмена.\n"
-                "Отправь ее мне, чтобы я смог подключиться к твоей таблице!",
+        "*ШАГ 4*\n\n"
+        "Ок!\nТеперь в *Настройках доступа* нажми *Копировать ссылку*, "
+        "она сохранится в буфер обмена.\n"
+        "Отправь ее мне, чтобы я смог подключиться к твоей таблице!",
         parse_mode="Markdown",
         reply_markup=markup,
     )
@@ -271,4 +307,5 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(
         register_cancel_callback,
         lambda cb: cb.data and cb.data == "reg_cancel",
+        state="*",
     )

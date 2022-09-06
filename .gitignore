@@ -1,6 +1,7 @@
 config.py
 finance.db
 google_token.json
+errors.log
 
 __pycache__/
 .idea/

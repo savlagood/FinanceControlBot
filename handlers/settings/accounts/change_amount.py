@@ -12,8 +12,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from google_sheet.accounts import get_accounts, change_balance
 from database import get_gsheet_id
 from keyboards import list_items_keyboard, main_keyboard
-from utils import delete_previous_message
 from server import bot
+from config import CREATOR
 
 
 class ChangeAmount(StatesGroup):
@@ -42,11 +42,6 @@ async def change_amount_callback_handler(message_or_call_query: Union[types.Mess
             data["gsheet_id"] = gsheet_id
             data["account_names"] = account_names
             data["accounts"] = accounts
-
-        # account_names_with_amount = []
-        # for i, name in enumerate(account_names):
-        #     amount = accounts[name.lower()]["amount"]
-        #     account_names_with_amount.append(f"{name}: {amount}")
 
         await bot.send_message(
             user_id,
@@ -119,7 +114,7 @@ async def get_new_amount_handler(message: types.Message, state: FSMContext):
                 logging.error("Excpetion during change_balance executing!", exc_info=exc)
                 await message.answer(
                     "*Ошибка!*\n\nНа моей стороне произошла ошибка. Если ты это читаешь, то "
-                    "напиши моему создателю: @savlagood. Он все починит)",
+                    f"напиши моему создателю: {CREATOR}. Он все починит)",
                     parse_mode="Markdown",
                     reply_markup=main_keyboard(),
                 )

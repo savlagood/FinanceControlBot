@@ -13,6 +13,7 @@ from server import bot
 from database import get_gsheet_id
 from google_sheet.accounts import get_accounts, delete_account
 from keyboards import main_keyboard, list_items_keyboard
+from config import CREATOR
 
 
 class DeleteAccount(StatesGroup):
@@ -71,7 +72,7 @@ async def get_account_name_handler(message: types.Message, state: FSMContext):
             logging.error("Excpetion during delete_account executing!", exc_info=exc)
             await message.answer(
                 "*Ошибка!*\n\nНа моей стороне произошла ошибка. Если ты это читаешь, то "
-                "напиши моему создателю: @savlagood. Он все починит)",
+                f"напиши моему создателю: {CREATOR}. Он все починит)",
                 parse_mode="Markdown",
                 reply_markup=main_keyboard(),
             )

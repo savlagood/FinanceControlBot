@@ -45,7 +45,7 @@ async def get_category_type_handler(message: types.Message, state: FSMContext):
     if category_type in ["расходы", "доходы"]:
         category_type = category_type.replace("расходы", "expense").replace("доходы", "income")
         async with state.proxy() as data:
-            categories = get_categories(data["gsheet_id"])
+            categories = get_categories(gsheet_id=data["gsheet_id"])
             data["categories"] = categories
             data["category_type"] = category_type
 

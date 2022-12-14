@@ -39,8 +39,8 @@ async def add_income_handler(message: types.Message, state: FSMContext):
 
     async with state.proxy() as data:
         data["gsheet_id"] = gsheet_id
-        data["categories"] = get_categories(settings_worksheet)["income"]
-        data["account_names"], data["accounts"] = get_accounts(settings_worksheet)
+        data["categories"] = get_categories(worksheet=settings_worksheet)["income"]
+        data["account_names"], data["accounts"] = get_accounts(worksheet=settings_worksheet)
         data["total_incomes"] = get_total_incomes(transactions_worksheet)
 
 

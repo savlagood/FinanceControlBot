@@ -1,13 +1,14 @@
 """
 Functions for working with categories (add, rename, delete).
 """
+import logging
 import gspread
 
 
 service_account = gspread.service_account("google_token.json")
 
 
-def get_categories(gsheet_id: str = None, worksheet: gspread.Worksheet = None) -> dict:
+def get_categories(worksheet: gspread.Worksheet = None, gsheet_id: str = None) -> dict:
     """
     Returns all categories of expense/income. One of the parameters must be passed to the function
     (worksheet or gsheet_id) otherwise ValueError.
@@ -21,6 +22,7 @@ def get_categories(gsheet_id: str = None, worksheet: gspread.Worksheet = None) -
         if gsheet_id is None:
             raise ValueError("No one of the parameters (sheet or gsheet_id) were passed to the function!")
         else:
+            logging.info(f"Connecting to gsheet with key: {gsheet_id}")
             sheet = service_account.open_by_key(gsheet_id)
             worksheet = sheet.worksheet("Настройки")
 

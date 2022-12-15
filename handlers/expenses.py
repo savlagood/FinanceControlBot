@@ -1,6 +1,8 @@
 """
 File with expence control handlers.
 """
+import logging
+
 from typing import Union
 
 from aiogram import Dispatcher, types
@@ -50,15 +52,8 @@ async def add_expense_handler_callback(message_or_call_query: Union[types.Messag
             data["account_names"], data["accounts"] = get_accounts(settings_worksheet)
             data["total_expenses"] = get_total_expenses(transactions_worksheet)
 
-
-# async def add_expence_handler(message: types.Message, state: FSMContext):
-#     """Adds expence to user's Google sheet."""
-#     await add_expense(message.from_user.id, state)
-#
-#
-# async def add_expence_callback(call_query: types.CallbackQuery, state: FSMContext):
-#     """Adds expence to user's Google sheet."""
-#     await add_expense(call_query.from_user.id, state)
+    logging.info(f"User: ({message_or_call_query.from_user.id}, {message_or_call_query.from_user.first_name}, "
+                 f"{message_or_call_query.from_user.username}) started adding income.")
 
 
 async def get_amount_handler(message: types.Message, state: FSMContext):
@@ -179,6 +174,7 @@ async def save_expense_to_sheet(user_id: int, state: FSMContext, comment: str = 
         "Запись успешно добавлена в Goolge таблицу!\nТакже ты можешь продолжить добавлять расходы.",
         reply_markup=markup,
     )
+    logging.info(f"User: {user_id} added expense.")
 
 
 async def cancel_comment_callback(call_query: types.CallbackQuery, state: FSMContext):
@@ -205,6 +201,7 @@ async def cancel_adding_expense(user_id: int, state: FSMContext):
         parse_mode="Markdown",
         reply_markup=main_keyboard(),
     )
+    logging.info(f"User: {user_id} canceled adding expense.")
 
 
 async def cancel_adding_expense_handler(message: types.Message, state: FSMContext):

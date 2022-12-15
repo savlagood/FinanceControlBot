@@ -11,7 +11,7 @@ bot = Bot(TELEGRAM_TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
     datefmt="%d-%b-%y %H:%M:%S",
 )

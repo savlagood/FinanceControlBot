@@ -1,8 +1,6 @@
 """
 File with income control handlers.
 """
-import logging
-
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -44,9 +42,6 @@ async def add_income_handler(message: types.Message, state: FSMContext):
         data["categories"] = get_categories(worksheet=settings_worksheet)["income"]
         data["account_names"], data["accounts"] = get_accounts(worksheet=settings_worksheet)
         data["total_incomes"] = get_total_incomes(transactions_worksheet)
-
-    logging.info(f"User: ({message.from_user.id}, {message.from_user.first_name}, "
-                 f"{message.from_user.username}) started adding income.")
 
 
 async def get_amount_handler(message: types.Message, state: FSMContext):
@@ -161,7 +156,6 @@ async def save_income_to_sheet(user_id: int, state: FSMContext, comment: str = "
         "Запись успешно добавлена в вашу Goolge таблицу!",
         reply_markup=main_keyboard(),
     )
-    logging.info(f"User: {user_id} added income.")
 
 
 async def cancel_comment_callback(call_query: types.CallbackQuery, state: FSMContext):
@@ -182,7 +176,6 @@ async def cancel_adding_income_handler(message: types.Message, state: FSMContext
         parse_mode="Markdown",
         reply_markup=main_keyboard(),
     )
-    logging.info(f"User: {message.from_user.id} canceled adding income.")
 
 
 def register_incomes_handlers(dp: Dispatcher):

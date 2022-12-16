@@ -216,11 +216,12 @@ async def delete_user_data_callback(call_query: types.CallbackQuery):
 
 
 @delete_previous_message
-async def register_cancel_callback(call_query: types.CallbackQuery):
+async def register_cancel_callback(call_query: types.CallbackQuery, state: FSMContext):
     """Returns to the standart usage mode (finance control)"""
+    await state.finish()
     await bot.send_message(
         call_query.from_user.id,
-        "*Отмена*. Теперь ты можешь продолжать вести учет расходов! 💵",
+        "*Отмена*. Надеюсь, ты не на долго",
         parse_mode="Markdown",
         reply_markup=main_keyboard(),
     )

@@ -195,7 +195,7 @@ def register_incomes_handlers(dp: Dispatcher):
 
     dp.register_message_handler(
         add_income_handler,
-        lambda msg: msg.text.lower() == "доход 📥",
+        lambda msg: msg.text.lower().startswith("доход"),
         state="*",
     )
     dp.register_message_handler(

@@ -1,5 +1,3 @@
-import logging
-
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -32,7 +30,6 @@ async def register(user_id: int):
     :param user_id: telegram user ID
     """
     ReplyKeyboardRemove()
-    logging.info(f"User {user_id} sent /register.")
 
     user = db.get_or_add_user(user_id)
     if user.gsheet_id:
@@ -104,8 +101,6 @@ async def google_drive_sign_in_callback(call_query: types.CallbackQuery):
         parse_mode="Markdown",
         reply_markup=markup,
     )
-    logging.info(f"User: ({call_query.from_user.id}, {call_query.from_user.first_name}, "
-                 f"{call_query.from_user.username}) at step 2.")
 
 
 @delete_previous_message
@@ -129,8 +124,6 @@ async def share_google_sheet_to_bot_callback(call_query: types.CallbackQuery):
         parse_mode="Markdown",
         reply_markup=markup,
     )
-    logging.info(f"User: ({call_query.from_user.id}, {call_query.from_user.first_name}, "
-                 f"{call_query.from_user.username}) at step 3.")
 
 
 @delete_previous_message
@@ -150,8 +143,6 @@ async def get_user_google_sheet_id_callback(call_query: types.CallbackQuery):
         reply_markup=markup,
     )
 
-    logging.info(f"User: ({call_query.from_user.id}, {call_query.from_user.first_name}, "
-                 f"{call_query.from_user.username}) at step 4.")
     await GetLinkToGoogleSheet.waiting_for_gsheet_id.set()
 
 
@@ -176,9 +167,6 @@ async def get_user_google_sheet_id(message: types.Message, state: FSMContext):
             reply_markup=markup,
         )
 
-        logging.info(f"User: ({message.from_user.id}, {message.from_user.first_name}, "
-                     f"{message.from_user.username}) sent wrong link.")
-
     else:
         await state.update_data(google_sheet_id=gsheet_id)
         db.update_gsheet_id(message.from_user.id, gsheet_id)
@@ -191,8 +179,6 @@ async def get_user_google_sheet_id(message: types.Message, state: FSMContext):
             reply_markup=main_keyboard(),
         )
 
-        logging.info(f"User: ({message.from_user.id}, {message.from_user.first_name}, "
-                     f"{message.from_user.username}) connectied to gsheet: {gsheet_id}.")
         await state.finish()
 
 
@@ -214,9 +200,6 @@ async def connect_to_other_table_callback(call_query: types.CallbackQuery):
         reply_markup=markup,
     )
 
-    logging.info(f"User: ({call_query.from_user.id}, {call_query.from_user.first_name}, "
-                 f"{call_query.from_user.username}) deleted his data and connecting to other Google sheet.")
-
     await GetLinkToGoogleSheet.waiting_for_gsheet_id.set()
 
 
@@ -230,8 +213,6 @@ async def delete_user_data_callback(call_query: types.CallbackQuery):
         "Чтобы продолжить меня использовать, напиши /register",
         parse_mode="Markdown",
     )
-    logging.info(f"User: ({call_query.from_user.id}, {call_query.from_user.first_name}, "
-                 f"{call_query.from_user.username}) deleted his data.")
 
 
 @delete_previous_message
@@ -243,8 +224,6 @@ async def register_cancel_callback(call_query: types.CallbackQuery):
         parse_mode="Markdown",
         reply_markup=main_keyboard(),
     )
-    logging.info(f"User: ({call_query.from_user.id}, {call_query.from_user.first_name}, "
-                 f"{call_query.from_user.username}) clanceled register.")
 
 
 def register_registration_handlers(dp: Dispatcher):

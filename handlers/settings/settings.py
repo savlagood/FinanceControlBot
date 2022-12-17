@@ -7,6 +7,7 @@ from aiogram.types.inline_keyboard import InlineKeyboardMarkup, InlineKeyboardBu
 
 from server import bot
 from keyboards import main_keyboard
+from utils import auth
 
 
 async def settings_cancel(call_query: types.CallbackQuery):
@@ -19,6 +20,7 @@ async def settings_cancel(call_query: types.CallbackQuery):
     )
 
 
+@auth
 async def settings_handler(message: types.Message):
     """Go to settings."""
     markup = InlineKeyboardMarkup()

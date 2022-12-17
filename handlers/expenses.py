@@ -11,6 +11,7 @@ from aiogram.types.inline_keyboard import InlineKeyboardMarkup, InlineKeyboardBu
 from server import bot
 from database import get_gsheet_id
 from keyboards import list_items_keyboard, main_keyboard
+from utils import auth
 
 from google_sheet.categories import get_categories, service_account
 from google_sheet.accounts import get_accounts
@@ -24,6 +25,7 @@ class AddsExpense(StatesGroup):
     comment = State()
 
 
+@auth
 async def add_expense_handler_callback(message_or_call_query: Union[types.Message, types.CallbackQuery],
                                        state: FSMContext):
     """Launches adding expense."""

@@ -5,6 +5,30 @@ import gspread
 from aiogram import types
 
 from server import bot
+from database import get_user
+
+
+def auth(func):
+    """Checks is user logged in."""
+    @functools.wraps(func)
+    async def wrapper(message_or_callback: typing.Union[types.Message, types.CallbackQuery], *args, **kwargs):
+        is_logged_in = True
+        try:
+            user = get_user(message_or_callback.from_user.id)
+        except ValueError:
+            is_logged_in = False
+        else:
+            if user.gsheet_id == "":
+                is_logged_in = False
+
+        if is_logged_in:
+            await func(message_or_callback, *args, **kwargs)
+        else:
+            await bot.send_message(message_or_callback.from_user.id,
+                                   "😐 Сначала подключи меня к таблице командой /register, "
+                                   "а потом используй все мои возможности.")
+
+    return wrapper
 
 
 def delete_previous_message(func):

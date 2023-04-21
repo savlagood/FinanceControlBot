@@ -7,27 +7,27 @@ _Телеграм бот для учета расходов в Google табли
 Клонируем репозиторий: `git clone https://github.com/savlagood/FinanceControlBot.git`
 
 ### Получение доступа к API для проекта
-- Переходим в [Google Developers Console](https://console.developers.google.com/) и создаем новый проект (или выбираем уже существующий).
-- Далее нажимаем на "enable apis and services" и в поле ввода (_Search for APIs and Services_) вводим: "Google Drive API" и подключаем его.
-- Затем вводим в том же поле: "Google Sheets API" и подключаем его.
+1. Переходим в [Google Developers Console](https://console.developers.google.com/) и создаем новый проект (или выбираем уже существующий).
+2. Далее нажимаем на "enable apis and services" и в поле ввода (_Search for APIs and Services_) вводим: "Google Drive API" и подключаем его.
+3. Затем вводим в том же поле: "Google Sheets API" и подключаем его.
 
 Теперь сгенерируем файл с правами доступа: google_token.json
 
-- Переходим "APIs & Services > Credentials" и выбираем "Create credentials > Service account key".
-- Заполняем форму и нажимаем "Done"
-- Нажимаем "Manage service accounts" над таблицай "Service Accounts"
-- В стоблице "Actions" у только что созданного сервисного аккаунта нажимаем на ⋮ (три вертикальный точки) и выбираем "Manage keys", затем “ADD KEY > Create new key”.
-- Выбираем JSON тип и нажимаем "Create". Автоматически должен скачаться json-файл с правами доступа
-- Переместите полученный файл в директорию с проектом и переименуйте: "google_token.json"
+1. Переходим "APIs & Services > Credentials" и выбираем "Create credentials > Service account key".
+2. Заполняем форму и нажимаем "Done"
+3. Нажимаем "Manage service accounts" над таблицай "Service Accounts"
+4. В стоблице "Actions" у только что созданного сервисного аккаунта нажимаем на ⋮ (три вертикальный точки) и выбираем "Manage keys", затем “ADD KEY > Create new key”.
+5. Выбираем JSON тип и нажимаем "Create". Автоматически должен скачаться json-файл с правами доступа
+6. Переместите полученный файл в директорию с проектом и переименуйте: "google_token.json"
 
 ### Настройка файла конфигураций: config.py
 В данной файле хранится несколько настроек, необходимый для работы бота.
 
-- Переименуйте файл "template_config.py" в "config.py"
-- TELEGRAM_TOKEN: телеграм токен бота, с которым будет взаимодействовать приложение. Создать бота можно у [отца всех ботов](https://t.me/BotFather).
-- CREATOR: ссылка на ваш телеграм аккаунт.
-- BOT_EMAIL: email адрес бота, который можной найти в файле "google_token.json" в поле "client_email".
-- LINK_TO_GOOGLE_SHEET: ссылка на эталонную Google таблицу. Данное поле не нужно менять, тк бот привязан к конкретной структуре таблицы.
+1. Переименуйте файл "template_config.py" в "config.py"
+2. TELEGRAM_TOKEN: телеграм токен бота, с которым будет взаимодействовать приложение. Создать бота можно у [отца всех ботов](https://t.me/BotFather).
+3. CREATOR: ссылка на ваш телеграм аккаунт.
+4. BOT_EMAIL: email адрес бота, который можной найти в файле "google_token.json" в поле "client_email".
+5. LINK_TO_GOOGLE_SHEET: ссылка на эталонную Google таблицу. Данное поле не нужно менять, тк бот привязан к конкретной структуре таблицы.
 
 ### Установка зависимостей
 1. Создаем виртуальное окружение `python -m venv venv` и активируем его `venv\Scripts\activate` (_пример для Windows_).

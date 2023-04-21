@@ -68,7 +68,7 @@ async def get_amount_handler(message: types.Message, state: FSMContext):
         if len(categories) == 0:
             await message.answer(
                 "Похоже, что ты еще не добавил ни одной категории расходов.\n"
-                "Чтобы ее добавить, введи команду /add_expense_category"
+                "Чтобы ее добавить, введи команду /add_category"
             )
             await state.finish()
 

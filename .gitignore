@@ -2,6 +2,7 @@ config.py
 finance.db
 google_token.json
 errors.log
+.gitignore
 
 __pycache__/
 .idea/

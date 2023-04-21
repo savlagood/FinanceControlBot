@@ -8,14 +8,14 @@ _Телеграм бот для учета расходов в Google табли
 
 ### Получение доступа к API для проекта
 - Переходим в [Google Developers Console](https://console.developers.google.com/) и создаем новый проект (или выбираем уже существующий).
-- Далее нажимаем на **enable apis and services** и в поле ввода (_Search for APIs and Services_) вводим: **Google Drive API** и подключаем его.
-- Затем вводим в том же поле: **Google Sheets API** и подключаем его.
+- Далее нажимаем на "enable apis and services" и в поле ввода (_Search for APIs and Services_) вводим: "Google Drive API" и подключаем его.
+- Затем вводим в том же поле: "Google Sheets API" и подключаем его.
 
 Теперь сгенерируем файл с правами доступа: google_token.json
 
-- Переходим **APIs & Services > Credentials** и выбираем **Create credentials > Service account key**.
-- Заполняем форму и нажимаем **Done**
-- Нажимаем **Manage service accounts** над таблицай **Service Accounts**
+- Переходим "APIs & Services > Credentials" и выбираем "Create credentials > Service account key".
+- Заполняем форму и нажимаем "Done"
+- Нажимаем "Manage service accounts" над таблицай "Service Accounts"
 - В стоблице "Actions" у только что созданного сервисного аккаунта нажимаем на ⋮ (три вертикальный точки) и выбираем "Manage keys", затем “ADD KEY > Create new key”.
 - Выбираем JSON тип и нажимаем "Create". Автоматически должен скачаться json-файл с правами доступа
 - Переместите полученный файл в директорию с проектом и переименуйте: "google_token.json"
